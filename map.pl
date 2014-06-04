@@ -93,7 +93,7 @@ sub CHECK_MAP {
 # MapAoA - exit N[4], exit S[5], exit E[6], exit W[7]
 sub TRAVEL_DIR {
     local $Term::ANSIColor::AUTORESET = 1;
-    print "Which direction do you choose to travel? -+[ ";
+    print "\nWhich direction do you choose to travel? -+[ ";
     if (@{$MapAoA[$MapLoc[4]]}->[4] == 1) {
         print BOLD "N"; 
     }
@@ -108,6 +108,7 @@ sub TRAVEL_DIR {
     }
     print " ]+-\n=> ";
     GO_TO_TRAVEL_DIR();
+    ENTER_PROMPT();
 }
 
 
@@ -117,7 +118,7 @@ sub GO_TO_TRAVEL_DIR {
     chomp($input);
 
     if ($input =~ 'N' && @{$MapAoA[$MapLoc[4]]}->[4] == 1) { 
-        print "You travelled North\n";
+        print "\nYou travelled North\n";
 		$count_NS -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-5;
@@ -141,7 +142,7 @@ sub GO_TO_TRAVEL_DIR {
     }
 
     elsif ($input =~ 'S' && @{$MapAoA[$MapLoc[4]]}->[5] == 1) { 
-        print "You travelled South\n";
+        print "\nYou travelled South\n";
 		$count_NS += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]+5;
@@ -165,7 +166,7 @@ sub GO_TO_TRAVEL_DIR {
     }
 
     elsif ($input =~ 'E' && @{$MapAoA[$MapLoc[4]]}->[6] == 1) {
-        print "You travelled East\n";
+        print "\nYou travelled East\n";
 		$count_EW += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]+1;
@@ -189,7 +190,7 @@ sub GO_TO_TRAVEL_DIR {
     }
 
     elsif ($input =~ 'W' && @{$MapAoA[$MapLoc[4]]}->[7] == 1) {
-        print "You travelled West\n";
+        print "\nYou travelled West\n";
 		$count_EW -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-1;
@@ -211,14 +212,13 @@ sub GO_TO_TRAVEL_DIR {
 			splice @MapLoc,0,1,$count_EW; # Current
 		}
     }
-	
     CHECK_MAP();
 }
 
 sub ENTER_PROMPT {
     print "\nPress [ENTER] to continue\n";
     my $input = <STDIN>;
-    if ($input !~ /^\n$/) { print "Goodbye\n"; exit; }
+    if ($input !~ /^\n$/) { print "Press ENTER better next time - Goodbye\n"; exit; }
 }
 
 
@@ -286,9 +286,9 @@ sub main {
 
        # Debug data structure stuff
 #       print @$_, "\n" foreach ( @MapAoA );
-	print "EW: ".$count_EW." NS: ".$count_NS."\n";
-        print "X Y X Y ?\n";
-        print $_." " foreach ( @MapLoc );
+#	print "EW: ".$count_EW." NS: ".$count_NS."\n";
+#        print "X Y X Y ?\n";
+#        print $_." " foreach ( @MapLoc );
         print "\n";
         CHECK_MAP();
         TRAVEL_DIR();
