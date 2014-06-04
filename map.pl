@@ -17,6 +17,7 @@ my $has_bomb = 0;
 my $impasse01_cleared = 0;
 my $impasse11_cleared = 0;
 my $have_help = 0;
+my $main_boss_dead = 0;
 
 system("clear"); 
 
@@ -28,28 +29,28 @@ my @MapLoc = (0,0,0,0,0);
 my @MapAoA = ( [0,0,1,0,0,1,0,0], #[0] array.
 	       [1,0,2,0,0,1,1,0], #[1] array..
 	       [2,0,0,0,0,1,1,0], #[2] array...
-	       [3,0,0,0,1,0,1,0], #[3] etc
-	       [4,0,0,0,1,0,1,0], #[4] etc.
+	       [3,0,0,0,0,0,1,1], #[3] etc
+	       [4,0,0,0,0,1,0,1], #[4] etc.
 	       [0,1,0,0,1,1,0,0], #[5] etc..
 	       [1,1,2,0,1,0,0,0], #[6] etc...
 	       [2,1,0,0,1,0,1,0], #[7]
 	       [3,1,0,0,0,1,0,1], #[8]
-	       [4,1,0,0,1,0,0,1], #[9]
+	       [4,1,0,0,1,1,0,0], #[9]
 	       [0,2,0,0,1,1,0,0], #[10]
 	       [1,2,0,0,0,1,1,0], #[11]
 	       [2,2,0,0,0,0,1,1], #[12]
 	       [3,2,0,0,0,1,0,0], #[13]
-	       [4,2,0,0,1,0,1,0], #[14]
+	       [4,2,0,0,0,1,0,0], #[14]
 	       [0,3,0,0,1,1,0,0], #[15]
 	       [1,3,0,0,1,1,0,0], #[16]
 	       [2,3,3,0,0,1,0,0], #[17]
 	       [3,3,0,0,1,1,0,0], #[18]
-	       [4,3,0,0,1,0,0,1], #[19]
+	       [4,3,0,0,0,1,0,0], #[19]
 	       [0,4,0,0,1,0,1,0], #[20]
 	       [1,4,0,0,1,0,0,1], #[21]
 	       [2,4,0,1,1,0,1,0], #[22]
 	       [3,4,0,0,1,0,0,1], #[23]
-	       [4,4,0,0,0,0,0,0]  #[24]
+	       [4,4,0,0,0,1,0,0]  #[24]
 	     );
 
 sub CHECK_MAP {
@@ -261,6 +262,20 @@ sub DO_SOMETHING {
        system("/usr/bin/afplay Sounds/OOT_Secret.wav &");
        splice @{$MapAoA[$MapLoc[4]]},5,1,1;
     }
+
+    # If the main boss has died, the room will start collapsing. The falling rocks chase you the rest of the way out of the dungeon.
+    if ($MapLoc[0] == 4 && $MapLoc[1] == 2 && $main_boss_dead == 0) {
+        print "\nYou fight the main boss!\n";
+	ENTER_PROMPT();
+	splice @{$MapAoA[$MapLoc[4]]},3,1,0;
+	$main_boss_dead = 1;
+    }
+    if ($main_boss_dead == 1 && @{$MapAoA[$MapLoc[4]]}->[2] == 1) {
+        splice @{$MapAoA[$MapLoc[4]]},2,1,2;
+    }
+    if ($MapLoc[0] == 4 && $MapLoc[1] == 4) {
+        $cur_position = "#";
+	}
 }
 
 
