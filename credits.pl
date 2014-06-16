@@ -224,6 +224,8 @@ Script Kitty
 NetCat
 
 == Special Thanks ==
+Myself
+The Specials
 Evan Cosby
 Eric Greene
 Johnny Basile
@@ -231,6 +233,7 @@ Ricky Martin
 Greg Kitson
 Chris Baker
 Carl Roudabayga
+JSON McNew
 Kyle Blakely
 Josh Boivin
 Jamar Vales
