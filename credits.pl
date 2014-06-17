@@ -222,10 +222,13 @@ Spooky
 Bitty Kitty
 Script Kitty
 NetCat
+Max
+Clogay
+Harley
 
 == Special Thanks ==
-Myself
 The Specials
+Myself
 Evan Cosby
 Eric Greene
 Johnny Basile
@@ -236,8 +239,24 @@ Carl Roudabayga
 JSON McNew
 Kyle Blakely
 Josh Boivin
+John rAmbrow
 Jamar Vales
-Phil Porada
 Jenny Ingles
 Kristie & Kelsey
 Mom & Dad
+
+== Fuck ==
+Drupal
+Atlassian
+MySQL
+Postgres
+Perl
+Python
+Ruby
+Bash
+Linux
+Windows
+OSX
+You
+Me
+Everything
