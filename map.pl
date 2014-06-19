@@ -3,6 +3,7 @@ use warnings;
 use strict;
 use Term::ANSIColor qw(:constants);
 use Term::ExtendedColor qw(:all);
+use utf8;
 
 my $user_color_choice = "sandybrown";
 my $cur_position = 'X';
@@ -18,6 +19,17 @@ my $impasse01_cleared = 0;
 my $impasse11_cleared = 0;
 my $have_help = 0;
 my $main_boss_dead = 0;
+
+my $ascii_explosion = << "EOL";
+                             \\         .  ./
+                           \\      .:";'.:.."   /
+                               (M^^.^~~:.'").
+                         -   (/  .    . . \\ \\)  -
+  O                         ((| :. ~ ^  :. .|))
+ |\\\\                     -   (\\- |  \\ /  |  /)  -
+ |  T                         -\\  \\     /  /-
+/ \\[_]..........................\\  \\   /  /
+EOL
 
 system("clear"); 
 
@@ -35,7 +47,7 @@ my @MapAoA = ( [0,0,1,0,0,1,0,0], #[0] array.
 	       [1,1,2,0,1,0,0,0], #[6] etc...
 	       [2,1,0,0,1,0,1,0], #[7]
 	       [3,1,0,0,0,1,0,1], #[8]
-	       [4,1,0,0,1,1,0,0], #[9]
+	       [4,1,0,1,1,1,0,0], #[9]
 	       [0,2,0,0,1,1,0,0], #[10]
 	       [1,2,0,0,0,1,1,0], #[11]
 	       [2,2,0,0,0,0,1,1], #[12]
@@ -48,10 +60,17 @@ my @MapAoA = ( [0,0,1,0,0,1,0,0], #[0] array.
 	       [4,3,0,0,0,1,0,0], #[19]
 	       [0,4,0,0,1,0,1,0], #[20]
 	       [1,4,0,0,1,0,0,1], #[21]
-	       [2,4,0,1,1,0,1,0], #[22]
+	       [2,4,0,0,1,0,1,0], #[22]
 	       [3,4,0,0,1,0,0,1], #[23]
 	       [4,4,0,0,0,1,0,0]  #[24]
 	     );
+my $ascii_Up_Down="\x{2502}";
+my $ascii_Left_Right="\x{2500}";
+my $ascii_Top_Left_Corner="\x{250C}";
+my $ascii_Bottom_Left_Corner="\x{2514}";
+my $ascii_Top_Right_Corner="\x{2510}";
+my $ascii_Bottom_Right_Corner="\x{2518}";
+my $three_way="\x{2524}";
 
 sub CHECK_MAP {
     # Inner/Outer exist so that I can get 0-24 for X,Y to access the correct array and check if the 
@@ -66,20 +85,20 @@ sub CHECK_MAP {
 		
 		# Changes the current positions state to "1" to reveal it
 		# Upon traveling, the CHECK_MAP function is called so this will update your map correctly
-		if (@{$MapAoA[$innerCount]}->[2] == 0) { splice @{$MapAoA[$innerCount]},2,1,1; }
+		if (@{$MapAoA[$innerCount]}[2] == 0) { splice @{$MapAoA[$innerCount]},2,1,1; }
 
 		# If you destroy the walls then the map should be updated accordingly
-		if ($impasse01_cleared == 1 && @{$MapAoA[1]}->[2] != 1) { splice @{$MapAoA[1]},2,1,0; }
-		if ($impasse11_cleared == 1 && @{$MapAoA[6]}->[2] != 1) { splice @{$MapAoA[6]},2,1,0; }
+		if ($impasse01_cleared == 1 && @{$MapAoA[1]}[2] != 1) { splice @{$MapAoA[1]},2,1,0; }
+		if ($impasse11_cleared == 1 && @{$MapAoA[6]}[2] != 1) { splice @{$MapAoA[6]},2,1,0; }
 		
 		# This allows the shop to be revealed, by default it is hidden. Basically it checks 
 		# if the state is set to 3 then updates the is_shop global var accordingly. 
 		# Probably not the smartest way, but eh it works so hey!
-		if (@{$MapAoA[$innerCount]}->[2] == 3) { $is_shop = 1; }
+		if (@{$MapAoA[$innerCount]}[2] == 3) { $is_shop = 1; }
 	    }
-	    elsif (@{$MapAoA[$innerCount]}->[2] == 3 && $is_shop == 1) { print "[$shop]"; }
-            elsif (@{$MapAoA[$innerCount]}->[2] == 2) { print "[$impasse]"; }
-            elsif (@{$MapAoA[$innerCount]}->[2] == 1) { print "[$revealed]"; }
+	    elsif (@{$MapAoA[$innerCount]}[2] == 3 && $is_shop == 1) { print "[$shop]"; }
+            elsif (@{$MapAoA[$innerCount]}[2] == 2) { print "[$impasse]"; }
+            elsif (@{$MapAoA[$innerCount]}[2] == 1) { print "[$revealed]"; }
 	    else { print "[$undiscovered]"; }
 	    $innerCount+=1;
             }
@@ -92,23 +111,22 @@ sub CHECK_MAP {
 
 # MapAoA - exit N[4], exit S[5], exit E[6], exit W[7]
 sub TRAVEL_DIR {
-    local $Term::ANSIColor::AUTORESET = 1;
+    local $Term::ANSIColor;
     print "\nWhich direction do you choose to travel? -+[ ";
-    if (@{$MapAoA[$MapLoc[4]]}->[4] == 1) {
-        print BOLD "N"; 
+    if (@{$MapAoA[$MapLoc[4]]}[4] == 1) {
+        print BOLD."N".RESET."orth "; 
     }
-    if (@{$MapAoA[$MapLoc[4]]}->[5] == 1) {
-        print BOLD "S"; 
+    if (@{$MapAoA[$MapLoc[4]]}[5] == 1) {
+        print BOLD "S".RESET."outh "; 
     }
-    if (@{$MapAoA[$MapLoc[4]]}->[6] == 1) {
-        print BOLD "E"; 
+    if (@{$MapAoA[$MapLoc[4]]}[6] == 1) {
+        print BOLD "E".RESET."ast "; 
     }
-    if (@{$MapAoA[$MapLoc[4]]}->[7] == 1) {
-        print BOLD "W"; 
+    if (@{$MapAoA[$MapLoc[4]]}[7] == 1) {
+        print BOLD "W".RESET."est "; 
     }
-    print " ]+-\n=> ";
+    print "]+-\n=> ";
     GO_TO_TRAVEL_DIR();
-    ENTER_PROMPT();
 }
 
 
@@ -117,19 +135,19 @@ sub GO_TO_TRAVEL_DIR {
     my $input = uc(<STDIN>);
     chomp($input);
 
-    if ($input =~ 'N' && @{$MapAoA[$MapLoc[4]]}->[4] == 1) { 
+    if ( ($input =~ /^N[oO]*[rR]*[tT]*[hH]*$/ || $input =~ /^\^$/) && @{$MapAoA[$MapLoc[4]]}[4] == 1) { 
         print "\nYou travelled North\n";
 		$count_NS -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-5;
 		# Doesn't allow you to leave the map boundaries
-		if ($MapLoc[1] <= 0 && @{$MapAoA[$MapLoc[4]]}->[2] != 2) { 
+		if ($MapLoc[1] <= 0 && @{$MapAoA[$MapLoc[4]]}[2] != 2) { 
 			$count_NS += 1;
 			splice @MapLoc,1,1,0; #Resets you to the Y position of the top ropw
 			splice @MapLoc,4,1,$MapLoc[4]+5; # Resets the MapAoA index
 		}
 		# Takes care of running into an "impasse" and resets your location to the previous location 
-		elsif ($MapLoc[1] >= 0 && @{$MapAoA[$MapLoc[4]]}->[2] == 2) {
+		elsif ($MapLoc[1] >= 0 && @{$MapAoA[$MapLoc[4]]}[2] == 2) {
 			$count_NS += 1;
 			splice @MapLoc,1,1,$count_NS; # Moves your position to the previous location
 			splice @MapLoc,4,1,$MapLoc[4]+5; # Resets the MapAoA index
@@ -141,19 +159,19 @@ sub GO_TO_TRAVEL_DIR {
 		}
     }
 
-    elsif ($input =~ 'S' && @{$MapAoA[$MapLoc[4]]}->[5] == 1) { 
+    elsif ( ($input =~ /^S[oO]*[uU]*[tT]*[hH]*$/ || $input =~ /^[vV]$/) && @{$MapAoA[$MapLoc[4]]}[5] == 1) { 
         print "\nYou travelled South\n";
 		$count_NS += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]+5;
 		# Doesn't allow you to leave the map boundaries
-		if ($MapLoc[1] >= 4 && @{$MapAoA[$MapLoc[4]]}->[2] != 2) {
+		if ($MapLoc[1] >= 4 && @{$MapAoA[$MapLoc[4]]}[2] != 2) {
 			$count_NS -= 1;
 			splice @MapLoc,1,1,4; # Resets you to the Y position of the bottom row
 			splice @MapLoc,4,1,$MapLoc[4]-5; # Resets the MapAoA index
 		}
 		# Takes care of running into an "impasse" and resets your location to the previous location 
-		elsif ($MapLoc[1] <= 4 && @{$MapAoA[$MapLoc[4]]}->[2] == 2) { 
+		elsif ($MapLoc[1] <= 4 && @{$MapAoA[$MapLoc[4]]}[2] == 2) { 
 			$count_NS -= 1;
 			splice @MapLoc,1,1,$count_NS; # Moves your position to the previous location
 			splice @MapLoc,4,1,$MapLoc[4]-5; # Resets the MapAoA index
@@ -165,19 +183,19 @@ sub GO_TO_TRAVEL_DIR {
 		}
     }
 
-    elsif ($input =~ 'E' && @{$MapAoA[$MapLoc[4]]}->[6] == 1) {
+    elsif ( ($input =~ /^E[aA]*[sS]*[tT]*$/ || $input =~ /^\>$/) && @{$MapAoA[$MapLoc[4]]}[6] == 1) {
         print "\nYou travelled East\n";
 		$count_EW += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]+1;
 		# Doesn't allow you to leave the map boundaries
-		if ($MapLoc[0] >= 4 && @{$MapAoA[$MapLoc[4]]}->[2] != 2) {
+		if ($MapLoc[0] >= 4 && @{$MapAoA[$MapLoc[4]]}[2] != 2) {
 			$count_EW -= 1;
 			splice @MapLoc,0,1,4; # Rests you to the X position of the rightmost column
 			splice @MapLoc,4,1,$MapLoc[4]-1; # Resets the MapAoA index
 		}
 		# Takes care of running into an "impasse" and resets your location to the previous location 
-		elsif ($MapLoc[0] <= 4 && @{$MapAoA[$MapLoc[4]]}->[2] == 2) {
+		elsif ($MapLoc[0] <= 4 && @{$MapAoA[$MapLoc[4]]}[2] == 2) {
 			$count_EW -= 1;
 			splice @MapLoc,0,1,$count_EW; # Moves your position to the previous location
 			splice @MapLoc,4,1,$MapLoc[4]-1; # Resets the MapAoA index
@@ -189,19 +207,19 @@ sub GO_TO_TRAVEL_DIR {
 		}
     }
 
-    elsif ($input =~ 'W' && @{$MapAoA[$MapLoc[4]]}->[7] == 1) {
+    elsif ( ($input =~ /^W[eE]*[sS]*[tT]*$/ || $input =~ /^\<$/) && @{$MapAoA[$MapLoc[4]]}[7] == 1) {
         print "\nYou travelled West\n";
 		$count_EW -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-1;
 		# Doesn't allow you to leave the map boundaries
-		if ($MapLoc[0] <= 0 && @{$MapAoA[$MapLoc[4]]}->[2] != 2) {
+		if ($MapLoc[0] <= 0 && @{$MapAoA[$MapLoc[4]]}[2] != 2) {
 			$count_EW += 1;
 			splice @MapLoc,0,1,0; # Resets you to the X position of the leftmost column
 			splice @MapLoc,4,1,$MapLoc[4]+1; # Resets the MapAoA index
 		}
 		# Takes care of running into an "impasse" and resets your location to the previous location 
-		elsif ( $MapLoc[0] >= 0 && @{$MapAoA[$MapLoc[4]]}->[2] == 2) {
+		elsif ( $MapLoc[0] >= 0 && @{$MapAoA[$MapLoc[4]]}[2] == 2) {
 			$count_EW += 1;
 			splice @MapLoc,0,1,$count_EW; # Moves your position to the previous location
 			splice @MapLoc,4,1,$MapLoc[4]+1; # Resets the MapAoA index
@@ -218,7 +236,6 @@ sub GO_TO_TRAVEL_DIR {
 sub ENTER_PROMPT {
     print "\nPress [ENTER] to continue\n";
     my $input = <STDIN>;
-    if ($input !~ /^\n$/) { print "Press ENTER better next time - Goodbye\n"; exit; }
 }
 
 
@@ -242,25 +259,29 @@ sub DO_SOMETHING {
     if ($MapLoc[0] == 2 && $MapLoc[1] == 0 && $impasse01_cleared == 0) {
        print "\nYou see a crack in the wall. As you investigate you realize you have a bomb to deal with this certain thing!\n";
       
-       print "Use bomb? [Yy]\n=>";
+       print "Use bomb? [".BOLD."Y".RESET."es ".BOLD."N".RESET."o ]\n=>";
        my $input = uc(<STDIN>);
        chomp($input);
        $impasse01_cleared = 1;
        CHECK_MAP();
+       print $ascii_explosion."\n";
        system("/usr/bin/afplay Sounds/LOZ_Secret.wav &");
        splice @{$MapAoA[$MapLoc[4]]},7,1,1;
+       ENTER_PROMPT();
     }
 
     # Script to destroy the impasse at 1,1 while standing in 0,1
     if ($MapLoc[0] == 1 && $MapLoc[1] == 0 && $impasse11_cleared == 0 && $impasse01_cleared == 1) {
        print "\nYou see a crack in the wall. As you investigate you realize you have a bomb to deal with this certain thing!\n";
-       print "Use bomb? [Yy]\n=>";
+       print "Use bomb? [".BOLD."Y".RESET."es ".BOLD."N".RESET."o ]\n=>";
        my $input = uc(<STDIN>);
        chomp($input);
        $impasse11_cleared = 1;
        CHECK_MAP();
-       system("/usr/bin/afplay Sounds/OOT_Secret.wav &");
+       print $ascii_explosion."\n";
+       system("/usr/bin/afplay Sounds/LOZ_Secret.wav &");
        splice @{$MapAoA[$MapLoc[4]]},5,1,1;
+       ENTER_PROMPT();
     }
 
     # If the main boss has died, the room will start collapsing. The falling rocks chase you the rest of the way out of the dungeon.
@@ -270,11 +291,15 @@ sub DO_SOMETHING {
 	splice @{$MapAoA[$MapLoc[4]]},3,1,0;
 	$main_boss_dead = 1;
     }
-    if ($main_boss_dead == 1 && @{$MapAoA[$MapLoc[4]]}->[2] == 1) {
+    if ($main_boss_dead == 1 && @{$MapAoA[$MapLoc[4]]}[2] == 1) {
         splice @{$MapAoA[$MapLoc[4]]},2,1,2;
     }
     if ($MapLoc[0] == 4 && $MapLoc[1] == 4) {
-        $cur_position = "#";
+        $cur_position = $impasse;
+        print "\n\n".BOLD."Congrats, you beat the shit out of the game!".RESET."\n\n";
+        ENTER_PROMPT(); 
+        system("./credits.pl");
+        exit;
 	}
 }
 
@@ -286,9 +311,9 @@ sub main {
 
        # Debug data structure stuff
 #       print @$_, "\n" foreach ( @MapAoA );
-#	print "EW: ".$count_EW." NS: ".$count_NS."\n";
-#        print "X Y X Y ?\n";
-#        print $_." " foreach ( @MapLoc );
+	print "EW: ".$count_EW." NS: ".$count_NS."\n";
+        print "X Y X Y ?\n";
+        print $_." " foreach ( @MapLoc );
         print "\n";
         CHECK_MAP();
         TRAVEL_DIR();

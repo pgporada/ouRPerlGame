@@ -4,6 +4,11 @@ use warnings;
 use Term::Screen;
 use Term::ANSIColor qw(:constants);
 
+sub ENTER_PROMPT {
+    print "\nPress [ENTER] to continue\n";
+    my $input = <STDIN>;
+}
+
 my $scr = new Term::Screen;
 unless ($scr) { die " Something's wrong \n"; }
 $scr->new;
@@ -22,6 +27,7 @@ for(my $i = $#creditsArray*2; $i >= 0 ; $i--) {
     for (my $j = 0; $j <= $index ; $j++) {
         # Makes the == Headings == BOLD plus concatenates the line to $var
         if ($creditsArray[$j] =~ /==/) { $var .= "\n\t".BOLD.$creditsArray[$j].RESET; }
+        elsif ($creditsArray[$j] =~ /You /) { $var .= "\n\t".BOLD RED.$creditsArray[$j].RESET; }
         # Concatenates the lines into $var and allows the screen to clear off all of the words from $var
         elsif ( $#creditsArray*2 < $index ) { $var .= "\n"; }
         # Regular lines that aren't == Headings == will have a new line and a tab char to sort of center them
@@ -29,166 +35,132 @@ for(my $i = $#creditsArray*2; $i >= 0 ; $i--) {
     }
         
     $scr->clrscr();
+    # Draws the giant box
     $scr->at($i,0)->puts($var);
-    
+    for (my $i = 60; $i < 75; $i++) {
+        for (my $j = 6; $j < 15 ; $j++) {
+            $scr->at($j,$i)->puts(ON_BRIGHT_YELLOW." ");
+        }
+    }    
+
     if ($step == 0) { 
-        $scr->at(8,64); 
-        $scr->puts("\|"); 
-        $scr->at(8,68); 
-        $scr->puts("\|"); 
-        $scr->at(9,71); 
-        $scr->puts("\|"); 
-        $scr->at(10,70); 
-        $scr->puts("\|"); 
-        $scr->at(11,69); 
-        $scr->puts("\|"); 
-        $scr->at(12,68); 
-        $scr->puts("\|");
+        $scr->at(8,64)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(8,68)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(9,71)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(10,70)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(11,69)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(12,68)->puts(ON_BRIGHT_RED."\|".RESET);
 
-        $scr->at(8,70); 
-        $scr->puts("\|"); 
-        $scr->at(9,63); 
-        $scr->puts("\|"); 
-        $scr->at(8,64); 
-        $scr->puts("\|"); 
-        $scr->at(10,64); 
-        $scr->puts("\|"); 
-        $scr->at(11,65); 
-        $scr->puts("\|"); 
-        $scr->at(12,66); 
-        $scr->puts("\|"); 
-        $scr->at(13,67); 
-        $scr->puts("\|"); 
+        $scr->at(8,70)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(9,63)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(8,64)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(10,64)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(11,65)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(12,66)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(13,67)->puts(ON_BRIGHT_RED."\|".RESET); 
 
-        $scr->at(8,66); 
-        $scr->puts("\|"); 
-        $scr->at(8,68); 
-        $scr->puts("\|"); 
+        $scr->at(8,66)->puts(ON_BRIGHT_RED."\|".RESET); 
+        $scr->at(8,68)->puts(ON_BRIGHT_RED."\|".RESET); 
 
         $step=1; 
     }
     elsif ($step == 1) { 
-        $scr->at(8,64); 
-        $scr->puts("\\"); 
-        $scr->at(8,68); 
-        $scr->puts("\\"); 
-        $scr->at(9,71); 
-        $scr->puts("\\"); 
-        $scr->at(10,70); 
-        $scr->puts("\\"); 
-        $scr->at(11,69); 
-        $scr->puts("\\"); 
-        $scr->at(12,68); 
-        $scr->puts("\\");
+        $scr->at(8,64)->puts(ON_BRIGHT_RED."\\".RESET); 
+        $scr->at(8,68)->puts(ON_BRIGHT_RED."\\".RESET); 
+        $scr->at(9,71)->puts(ON_BRIGHT_RED."\\".RESET); 
+        $scr->at(10,70)->puts(ON_BRIGHT_RED."\\".RESET); 
+        $scr->at(11,69)->puts(ON_BRIGHT_RED."\\".RESET); 
+        $scr->at(12,68)->puts(ON_BRIGHT_RED."\\".RESET);
  
-        $scr->at(8,70); 
-        $scr->puts("\/"); 
-        $scr->at(9,63); 
-        $scr->puts("\/"); 
-        $scr->at(10,64); 
-        $scr->puts("\/"); 
-        $scr->at(11,65); 
-        $scr->puts("\/"); 
-        $scr->at(12,66); 
-        $scr->puts("\/"); 
-        $scr->at(13,67); 
-        $scr->puts("\/"); 
+        $scr->at(8,70)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(9,63)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(10,64)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(11,65)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(12,66)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(13,67)->puts(ON_BRIGHT_RED."\/".RESET); 
 
-        $scr->at(8,66); 
-        $scr->puts("\\"); 
-        $scr->at(8,68); 
-        $scr->puts("\/"); 
+        $scr->at(8,66)->puts(ON_BRIGHT_RED."\\".RESET); 
+        $scr->at(8,68)->puts(ON_BRIGHT_RED."\/".RESET); 
 
         $step=2; 
     }
     elsif ($step == 2) { 
-        $scr->at(8,64); 
-        $scr->puts("\-"); 
-        $scr->at(8,68); 
-        $scr->puts("\-"); 
-        $scr->at(9,71); 
-        $scr->puts("\-"); 
-        $scr->at(10,70); 
-        $scr->puts("\-"); 
-        $scr->at(11,69); 
-        $scr->puts("\-"); 
-        $scr->at(12,68); 
-        $scr->puts("\-"); 
+        $scr->at(8,64)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(8,68)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(9,71)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(10,70)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(11,69)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(12,68)->puts(ON_BRIGHT_RED."\-".RESET); 
 
-        $scr->at(8,70); 
-        $scr->puts("\-"); 
-        $scr->at(9,63); 
-        $scr->puts("\-"); 
-        $scr->at(8,64); 
-        $scr->puts("\-"); 
-        $scr->at(10,64); 
-        $scr->puts("\-"); 
-        $scr->at(11,65); 
-        $scr->puts("\-"); 
-        $scr->at(12,66); 
-        $scr->puts("\-"); 
-        $scr->at(13,67); 
-        $scr->puts("\-"); 
+        $scr->at(8,70)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(9,63)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(8,64)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(10,64)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(11,65)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(12,66)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(13,67)->puts(ON_BRIGHT_RED."\-".RESET); 
 
-        $scr->at(8,66); 
-        $scr->puts("\-"); 
-        $scr->at(8,68); 
-        $scr->puts("\-"); 
+        $scr->at(8,66)->puts(ON_BRIGHT_RED."\-".RESET); 
+        $scr->at(8,68)->puts(ON_BRIGHT_RED."\-".RESET); 
 
         $step=3; 
     }
     elsif ($step == 3) {
-        $scr->at(8,64); 
-        $scr->puts("\/"); 
-        $scr->at(8,68); 
-        $scr->puts("\/"); 
-        $scr->at(9,71); 
-        $scr->puts("\/"); 
-        $scr->at(10,70); 
-        $scr->puts("\/"); 
-        $scr->at(11,69); 
-        $scr->puts("\/"); 
-        $scr->at(12,68); 
-        $scr->puts("\/"); 
+        $scr->at(8,64)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(8,68)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(9,71)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(10,70)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(11,69)->puts(ON_BRIGHT_RED."\/".RESET); 
+        $scr->at(12,68)->puts(ON_BRIGHT_RED."\/".RESET); 
  
-        $scr->at(8,70); 
-        $scr->puts("\\"); 
-        $scr->at(9,63); 
-        $scr->puts("\\"); 
-        $scr->at(10,64); 
-        $scr->puts("\\"); 
-        $scr->at(11,65); 
-        $scr->puts("\\"); 
-        $scr->at(12,66); 
-        $scr->puts("\\"); 
-        $scr->at(13,67); 
-        $scr->puts("\\");
+        $scr->at(8,70)->puts(ON_BRIGHT_RED."\\".RESET);
+        $scr->at(9,63)->puts(ON_BRIGHT_RED."\\".RESET);
+        $scr->at(10,64)->puts(ON_BRIGHT_RED."\\".RESET);
+        $scr->at(11,65)->puts(ON_BRIGHT_RED."\\".RESET);
+        $scr->at(12,66)->puts(ON_BRIGHT_RED."\\".RESET);
+        $scr->at(13,67)->puts(ON_BRIGHT_RED."\\".RESET);
 
-        $scr->at(8,66); 
-        $scr->puts("\\"); 
-        $scr->at(8,68); 
-        $scr->puts("\/"); 
+        $scr->at(8,66)->puts(ON_BRIGHT_RED."\\".RESET); 
+        $scr->at(8,68)->puts(ON_BRIGHT_RED."\/".RESET); 
 
         $step=0; 
     }
         # Bottom/Top of the heart
-        $scr->at(13,67);
-        $scr->puts("V"); 
-        $scr->at(9,67);
-        $scr->puts("V"); 
-        $scr->at(8,65);
-        $scr->puts("\^"); 
-        $scr->at(8,69);
-        $scr->puts("\^"); 
+        $scr->at(13,67)->puts(ON_BRIGHT_RED."V".RESET); 
+        $scr->at(9,67)->puts(ON_BRIGHT_RED."V".RESET); 
+        $scr->at(7,65)->puts(ON_BRIGHT_RED."\^".RESET); 
+        $scr->at(7,69)->puts(ON_BRIGHT_RED."\^".RESET); 
+        # Fills in the heart
+        $scr->at(8,65)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(8,69)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(9,64)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(9,65)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(9,66)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(9,68)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(9,69)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(9,70)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(10,65)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(10,66)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(10,67)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(10,68)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(10,69)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(11,66)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(11,67)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(11,68)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        $scr->at(12,67)->puts(ON_BRIGHT_MAGENTA."@".RESET);
+        
+        # Homes the cursor to 0,0 per documentation
+        $scr->new;
+        
 
     $var = ''; # Resets var to be nothing so we can rebuild the concatenated text block in the inner for loop
     $index++;
-    sleep 1;
+    select(undef, undef, undef, 0.40);
 }
 
 print "\n\n\n\n";
 print "The end!\n\n\n\n";
-
+ENTER_PROMPT();
 
 __DATA__
 == Lead Designer ==
@@ -207,13 +179,6 @@ Phil Porada
 Dan Porter
 Phil Porada
 
-== Lead Coffee Consumers ==
-Jenny Ingles
-Phil Porada
-
-== Listener to of my bullshit ==
-Jenny Ingles
-
 == Cats ==
 Lilly
 Noodle
@@ -226,6 +191,13 @@ Max
 Clogay
 Harley
 
+== Lead Coffee Consumers ==
+Jenny Ingles
+Phil Porada
+
+== Listener to of my bullshit ==
+Jenny Ingles
+
 == Special Thanks ==
 The Specials
 Myself
@@ -235,8 +207,13 @@ Johnny Basile
 Ricky Martin
 Greg Kitson
 Chris Baker
+Chris Dogbert
+Ron Filloon
 Carl Roudabayga
 JSON McNew
+Cathryn SDS
+Steph
+Johnny Basile
 Kyle Blakely
 Josh Boivin
 John rAmbrow
@@ -259,4 +236,8 @@ Windows
 OSX
 You
 Me
-Everything
+This game
+Everything!
+
+== Love == 
+You :3 <3
