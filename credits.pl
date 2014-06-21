@@ -7,6 +7,7 @@ use Term::ANSIColor qw(:constants);
 sub ENTER_PROMPT {
     print "\nPress [ENTER] to continue\n";
     my $input = <STDIN>;
+    if ($input !~ /\012/) { ENTER_PROMPT(); }
 }
 
 my $scr = new Term::Screen;
@@ -29,7 +30,7 @@ for(my $i = $#creditsArray*2; $i >= 0 ; $i--) {
         if ($creditsArray[$j] =~ /==/) { $var .= "\n\t".BOLD.$creditsArray[$j].RESET; }
         elsif ($creditsArray[$j] =~ /You /) { $var .= "\n\t".BOLD RED.$creditsArray[$j].RESET; }
         # Concatenates the lines into $var and allows the screen to clear off all of the words from $var
-        elsif ( $#creditsArray*2 < $index ) { $var .= "\n"; }
+        elsif ( $#creditsArray+$scr->rows < $index ) { $var .= "\n"; }
         # Regular lines that aren't == Headings == will have a new line and a tab char to sort of center them
         else { $var .= "\n\t ".$creditsArray[$j]; }
     }
@@ -157,7 +158,7 @@ for(my $i = $#creditsArray*2; $i >= 0 ; $i--) {
     $index++;
     select(undef, undef, undef, 0.40);
 }
-
+$scr->clrscr();
 print "\n\n\n\n";
 print "The end!\n\n\n\n";
 ENTER_PROMPT();
@@ -206,6 +207,8 @@ Eric Greene
 Johnny Basile
 Ricky Martin
 Greg Kitson
+UmbertoUnity82 aka Andrew
+Avrey Polni
 Chris Baker
 Chris Dogbert
 Ron Filloon
@@ -221,6 +224,7 @@ Jamar Vales
 Jenny Ingles
 Kristie & Kelsey
 Mom & Dad
+Babcia & Dzadiu & Dzadiu Porada
 
 == Fuck ==
 Drupal
@@ -240,4 +244,4 @@ This game
 Everything!
 
 == Love == 
-You :3 <3
+You :3 <3!
