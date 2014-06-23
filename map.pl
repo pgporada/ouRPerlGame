@@ -32,8 +32,6 @@ my $ascii_explosion = << "EOL";
 / \\[_]..........................\\  \\   /  /
 EOL
 
-system("clear"); 
-
 #Location on the grid = current X[0], current Y[1], previous X[2], previous Y[3], AoAIndexCount[4]
 my @MapLoc = (0,0,0,0,0);
 
@@ -115,12 +113,8 @@ sub CHECK_MAP {
     }
 }
 
-
-
-# MapAoA - exit N[4], exit S[5], exit E[6], exit W[7]
-sub TRAVEL_DIR {
-    local $Term::ANSIColor;
-    print "\nWhich direction do you choose to travel? -+[ ";
+sub PRINT_DIRECTIONS {
+    print "\nYou can travel in the following direction(s) -+[ ";
     if (@{$MapAoA[$MapLoc[4]]}[4] == 1) {
         print BOLD."N".RESET."orth "; 
     }
@@ -133,16 +127,13 @@ sub TRAVEL_DIR {
     if (@{$MapAoA[$MapLoc[4]]}[7] == 1) {
         print BOLD "W".RESET."est "; 
     }
-    print "]+-\n=> ";
-    GO_TO_TRAVEL_DIR();
+    print "]+-\n";
 }
 
-
-sub GO_TO_TRAVEL_DIR {
-
-    my $input = uc(<STDIN>);
-    chomp($input);
-        CHECK_MAP();
+sub TRAVEL_DIR {
+    # Final check to make sure you can't leave the current room without possibly encountering something
+    preLeaveRoomCheck();
+    my $input = shift;
 
     if ( ($input =~ /^N[oO]*[rR]*[tT]*[hH]*$/ || $input =~ /^\^$/) && @{$MapAoA[$MapLoc[4]]}[4] == 1) { 
 		$count_NS -= 1;
@@ -301,38 +292,89 @@ sub DO_SOMETHING {
     if ($MapLoc[0] == 4 && $MapLoc[1] == 4) {
         $cur_position = $impasse;
         print "\n\n".BOLD."Congrats, you beat the shit out of the game!".RESET."\n\n";
-        ENTER_PROMPT(); 
+        ENTER_PROMPT();
+        # Tests for existance and if it's not an empty file 
         -e "credits.pl" && -r "credits.pl" ? system("perl credits.pl") : print "[".RED."-".RESET."] Could not open credits.pl\n";
+        system("/usr/bin/afplay Sounds/END.mp3 &");
         exit;
 	}
 }
 
 sub STATUS {
-	           # Debug data structure stuff
-#       print @$_, "\n" foreach ( @MapAoA );
-		print "EW: ".$count_EW." NS: ".$count_NS."\n";
-        print "X Y X Y ?\n";
-        print $_." " foreach ( @MapLoc );
-        print "\n";
-	postEnterRoomCheck();
-    preLeaveRoomCheck();
+   # print @$_, "\n" foreach ( @MapAoA );
+    print "EW: ".$count_EW." NS: ".$count_NS."\n";
+    print "X Y X Y ?\n";
+    print $_." " foreach ( @MapLoc );
+    print "\n";
 }
 
 sub postEnterRoomCheck {
-	say "You just entered room: ".$MapLoc[0].",".$MapLoc[1]." via ".$MapLoc[2].",".$MapLoc[3];
+	say "\nYou just entered room: ".$MapLoc[0].",".$MapLoc[1]." via ".$MapLoc[2].",".$MapLoc[3];
 }
 
 sub preLeaveRoomCheck {
-	say "You're going to be leaving room: ".$MapLoc[0].",".$MapLoc[1];
+	say "\nYou're going to be leaving room: ".$MapLoc[2].",".$MapLoc[3];
 }
 
+sub WHAT_DO {
+    while (1) {
+        say "\nWhat would you like to do? ";
+        my $input = uc(<STDIN>);
+        chomp($input);
+        # Check directions 
+        if ($input =~ /^S[oO]*[uU]*[tT]*[hH]*$/ ||$input =~ /^N[oO]*[rR]*[tT]*[hH]*$/ ||$input =~ /^E[aA]*[sS]*[tT]*$/ ||$input =~ /^W[eE]*[sS]*[tT]*$/) {
+            TRAVEL_DIR($input);
+            last; # last will break us out of the while loop
+        }
+        # Take a look around 
+        elsif ($input =~ /^[Ll][oO][oO][kK]$/ || $input =~ /^[dD][iI][rR][eE][cC][tT][iI][oO][nN][sS]*$/) {
+            PRINT_DIRECTIONS();
+        }
+        # Help
+        elsif ($input =~ /^[hH][eE][lL][pP][?]*$/ || $input =~ /^\?$/) {
+            print "\nYou can ";
+            print BOLD."LOOK".RESET;
+            print ", ".BOLD."GET".RESET;
+            print ", ".BOLD."MAP".RESET;
+            print ", ".BOLD."PRINT".RESET;
+            print ", ".BOLD."WHERE".RESET;
+            print ", ".BOLD."LOCATION".RESET;
+            print ", ".BOLD."DIRECTION".RESET."[".BOLD."S".RESET."]";
+            print ", ".BOLD."CHECK".RESET;
+            print ", ".BOLD."INV".RESET."[".BOLD."ENTORY".RESET."] ";
+            print "and ".BOLD."READ".RESET.".\n"; 
+            say "If you ".BOLD."LOOK".RESET.", you can travel in one of the returned ".BOLD."DIRECTION".RESET."[".BOLD."S".RESET."]";
+        }
+        # Check inventory
+        elsif ($input =~ /^[cC][hH][eE][cC][kK]$/ || $input =~ /^[iI][nN][vV][eE]*[nN]*[tT]*[oO]*[rR]*[yY]*$/) { 
+            say "\nCurrent unimplemented";
+        }
+        # Get item in room
+        elsif ($input =~ /^[gG][eE][tT]/) {
+            say "\nCurrent unimplemented";
+        }
+        # Read <object> in room
+        elsif ($input =~ /^[rR][eE][aA][dD]/) {
+            say "\nCurrent unimplemented";
+        }
+        # Show the map
+        elsif ($input =~ /^[mM][aA][pP]$/ || $input =~ /^[pP][rR][iI][nN][tT]$/ || $input =~ /^[wW][hH][eE][rR][eE]$/ || $input =~ /^[lL][oO][cC][aA][tT][iI][oO][nN]$/) {
+            CHECK_MAP();
+        }
+        else { 
+            say "\nYou can't do that here. Maybe you should seek ".BOLD."HELP".RESET."?";
+            WHAT_DO();
+        }
+    }
+}
 
 sub main {
+    system("clear");
     while(1) {
-    	STATUS();
         CHECK_MAP();
-        TRAVEL_DIR();
+	    postEnterRoomCheck();
         STATUS();
+        WHAT_DO();
         DO_SOMETHING();
         system("clear"); # Currently will clear the screen. I need to add some sort of loop incase the player decides to wait in the room and perform actions.
     }
