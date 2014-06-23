@@ -20,6 +20,8 @@ my $impasse01_cleared = 0;
 my $impasse11_cleared = 0;
 my $have_help = 0;
 my $main_boss_dead = 0;
+my $initialHelpScreen = 1;
+my $haveMap = 0;
 
 my $ascii_explosion = << "EOL";
                              \\         .  ./
@@ -79,6 +81,11 @@ sub tileTypeChecker {
 }
 
 sub CHECK_MAP {
+    if ($haveMap == 0) {
+        say "\n=> What are you talking about? You do not have a map.";
+        return;
+    }    
+
     # Inner/Outer exist so that I can get 0-24 for X,Y to access the correct array and check if the 
     # current spot has been revealed. Without these, the entire row or column would be marked as revealed
     my $innerCount = 0;
@@ -226,6 +233,7 @@ sub TRAVEL_DIR {
 			splice @MapLoc,3,1,$count_NS; # Previous 
 		}
     }
+    postEnterRoomCheck();
 }
 
 sub ENTER_PROMPT {
@@ -235,6 +243,16 @@ sub ENTER_PROMPT {
 }
 
 sub DO_SOMETHING {
+    if ($MapLoc[0] == 0 && $MapLoc[1] == 0 && $initialHelpScreen == 1) {
+        $initialHelpScreen = 0;
+        WHAT_DO("HELP");
+    }       
+    
+    if ($MapLoc[0] == 0 && $MapLoc[1] == 3) {
+        say "\n=> You found a map!";
+        $haveMap = 1;
+    }
+
     # Once you get help from the shopkeeper, the pathing can change to allow access to the rest of the map at 3,2
     if ($have_help == 1 && $MapLoc[0] == 3 && $MapLoc[1] == 2) {
         print "\nYour help offers to help out. You think to yourself, \"That's redundant.\"\n";
@@ -302,10 +320,10 @@ sub DO_SOMETHING {
 
 sub STATUS {
    # print @$_, "\n" foreach ( @MapAoA );
-    print "EW: ".$count_EW." NS: ".$count_NS."\n";
-    print "X Y X Y ?\n";
-    print $_." " foreach ( @MapLoc );
-    print "\n";
+   # print "EW: ".$count_EW." NS: ".$count_NS."\n";
+   # print "X Y X Y ?\n";
+   # print $_." " foreach ( @MapLoc );
+   # print "\n";
 }
 
 sub postEnterRoomCheck {
@@ -318,9 +336,12 @@ sub preLeaveRoomCheck {
 
 sub WHAT_DO {
     while (1) {
-        say "\nWhat would you like to do? ";
-        my $input = uc(<STDIN>);
-        chomp($input);
+        my $input = shift;
+        if (not defined $input) {
+            say "\nWhat would you like to do? ";
+            $input = uc(<STDIN>);
+            chomp($input);
+        }
         # Check directions 
         if ($input =~ /^S[oO]*[uU]*[tT]*[hH]*$/ ||$input =~ /^N[oO]*[rR]*[tT]*[hH]*$/ ||$input =~ /^E[aA]*[sS]*[tT]*$/ ||$input =~ /^W[eE]*[sS]*[tT]*$/) {
             TRAVEL_DIR($input);
@@ -335,10 +356,12 @@ sub WHAT_DO {
             print "\nYou can ";
             print BOLD."LOOK".RESET;
             print ", ".BOLD."GET".RESET;
-            print ", ".BOLD."MAP".RESET;
-            print ", ".BOLD."PRINT".RESET;
-            print ", ".BOLD."WHERE".RESET;
-            print ", ".BOLD."LOCATION".RESET;
+            if ($haveMap == 1) { 
+                print ", ".BOLD."MAP".RESET; 
+                print ", ".BOLD."PRINT".RESET;
+                print ", ".BOLD."WHERE".RESET;
+                print ", ".BOLD."LOCATION".RESET;
+            }
             print ", ".BOLD."DIRECTION".RESET."[".BOLD."S".RESET."]";
             print ", ".BOLD."CHECK".RESET;
             print ", ".BOLD."INV".RESET."[".BOLD."ENTORY".RESET."] ";
@@ -371,12 +394,12 @@ sub WHAT_DO {
 sub main {
     system("clear");
     while(1) {
-        CHECK_MAP();
-	    postEnterRoomCheck();
+        #CHECK_MAP();
         STATUS();
-        WHAT_DO();
         DO_SOMETHING();
-        system("clear"); # Currently will clear the screen. I need to add some sort of loop incase the player decides to wait in the room and perform actions.
+        WHAT_DO();
+        #DO_SOMETHING();
+        #system("clear"); # Currently will clear the screen. I need to add some sort of loop incase the player decides to wait in the room and perform actions.
     }
 }
 

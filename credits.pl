@@ -226,22 +226,5 @@ Kristie & Kelsey
 Mom & Dad
 Babcia & Dzadiu & Dzadiu Porada
 
-== Fuck ==
-Drupal
-Atlassian
-MySQL
-Postgres
-Perl
-Python
-Ruby
-Bash
-Linux
-Windows
-OSX
-You
-Me
-This game
-Everything!
-
 == Love == 
 You :3 <3!
