@@ -9,7 +9,7 @@ use feature qw(say);
 my $user_color_choice = "sandybrown";
 my $cur_position = 'X';
 my $undiscovered = ' ';
-my $revealed = fg('blue3','-');
+my $revealed = fg('blue7','-');
 my $impasse = fg($user_color_choice,'#');
 my $shop = fg('yellow9','$');
 my $count_NS = 0;
@@ -18,10 +18,12 @@ my $is_shop = 0;
 my $has_bomb = 0;
 my $impasse01_cleared = 0;
 my $impasse11_cleared = 0;
-my $have_help = 0;
 my $main_boss_dead = 0;
 my $initialHelpScreen = 1;
+my $have_help = 0;
 my $haveMap = 0;
+my $autoLook = 0;
+my $autoMap = 0;
 
 my $ascii_explosion = << "EOL";
                              \\         .  ./
@@ -68,7 +70,16 @@ my @MapAoA = ( [0,0,1,0,0,1,0,0,0,0], #[0] array.
 		       [2,4,0,0,1,0,1,0,1,0], #[22]
 		       [3,4,0,0,1,0,0,1,1,0], #[23]
 		       [4,4,0,0,0,1,0,0,1,0]  #[24]
-	     );
+    );
+
+my %cheats = (
+    'doom1' => 'idclip',
+    'hexen' => 'casper',
+    'doom2' => 'idspispopd',
+    'heretic' => 'kitty',
+    'chexquest' => 'charlesjacobi',
+    'halflife' => 'noclip',
+    );
 
 sub tileTypeChecker {
 	my $ascii_Up_Down="\x{2502}";
@@ -80,48 +91,56 @@ sub tileTypeChecker {
 	my $ascii_3Way="\x{2524}";
 }
 
-sub CHECK_MAP {
-    if ($haveMap == 0) {
-        say "\n=> What are you talking about? You do not have a map.";
-        return;
-    }    
-
+sub UPDATE_MAP_DATA {
     # Inner/Outer exist so that I can get 0-24 for X,Y to access the correct array and check if the 
     # current spot has been revealed. Without these, the entire row or column would be marked as revealed
     my $innerCount = 0;
     my $outerCount = 0;
     for(my $i=0; $i <= 4; $i++) {
         for(my $j=0; $j <= 4; $j++) {
-	    # Prints your current position out from the @MapLoc array
+	        # Prints your current position out from the @MapLoc array
             if ($MapLoc[0] == $j && $MapLoc[1] == $i) { 
-	        print "[$cur_position]";
-		
-		# Changes the current positions state to "1" to reveal it
-		# Upon traveling, the CHECK_MAP function is called so this will update your map correctly
-		if (@{$MapAoA[$innerCount]}[2] == 0) { splice @{$MapAoA[$innerCount]},2,1,1; }
+		        # Changes the current positions state to "1" to reveal it
+	            # Upon traveling, the UPDATE_MAP_DATA function is called so this will update your map correctly
+        		if (@{$MapAoA[$innerCount]}[2] == 0) { splice @{$MapAoA[$innerCount]},2,1,1; }
+	            # If you destroy the walls then the map should be updated accordingly
+	        	if ($impasse01_cleared == 1 && @{$MapAoA[1]}[2] != 1) { splice @{$MapAoA[1]},2,1,0; }
+	        	if ($impasse11_cleared == 1 && @{$MapAoA[6]}[2] != 1) { splice @{$MapAoA[6]},2,1,0; }
+                if (@{$MapAoA[$innerCount]}[2] == 3) { $is_shop = 1; }
+	        }
+	        $innerCount+=1;
+        }
+    	$outerCount+=1;
+    }
+}
 
-		# If you destroy the walls then the map should be updated accordingly
-		if ($impasse01_cleared == 1 && @{$MapAoA[1]}[2] != 1) { splice @{$MapAoA[1]},2,1,0; }
-		if ($impasse11_cleared == 1 && @{$MapAoA[6]}[2] != 1) { splice @{$MapAoA[6]},2,1,0; }
-		
-		# This allows the shop to be revealed, by default it is hidden. Basically it checks 
-		# if the state is set to 3 then updates the is_shop global var accordingly. 
-		# Probably not the smartest way, but eh it works so hey!
-		if (@{$MapAoA[$innerCount]}[2] == 3) { $is_shop = 1; }
-	    }
-	    elsif (@{$MapAoA[$innerCount]}[2] == 3 && $is_shop == 1) { print "[$shop]"; }
+sub PRINT_MAP {
+   if ($haveMap == 0) {
+        say "\n=> What are you talking about? You do not have a map.";
+        return;
+    }
+    my $innerCount = 0;
+    my $outerCount = 0;
+    
+    for(my $i=0; $i <= 4; $i++) {
+        for(my $j=0; $j <= 4; $j++) {
+	        # Prints your current position out from the @MapLoc array
+            if ($MapLoc[0] == $j && $MapLoc[1] == $i) { 
+    	        print "[$cur_position]";
+	        }
+	        elsif (@{$MapAoA[$innerCount]}[2] == 3 && $is_shop == 1) { print "[$shop]"; }
             elsif (@{$MapAoA[$innerCount]}[2] == 2) { print "[$impasse]"; }
             elsif (@{$MapAoA[$innerCount]}[2] == 1) { print "[$revealed]"; }
-	    else { print "[$undiscovered]"; }
-	    $innerCount+=1;
+    	    else { print "[$undiscovered]"; }
+	        $innerCount+=1;
         }
         print "\n";
-	$outerCount+=1;
+    	$outerCount+=1;
     }
 }
 
 sub PRINT_DIRECTIONS {
-    print "\nYou can travel in the following direction(s) -+[ ";
+    print "\nYou can travel in the following direction(s)\n[ ";
     if (@{$MapAoA[$MapLoc[4]]}[4] == 1) {
         print BOLD."N".RESET."orth "; 
     }
@@ -134,7 +153,7 @@ sub PRINT_DIRECTIONS {
     if (@{$MapAoA[$MapLoc[4]]}[7] == 1) {
         print BOLD "W".RESET."est "; 
     }
-    print "]+-\n";
+    print "]\n";
 }
 
 sub TRAVEL_DIR {
@@ -142,7 +161,7 @@ sub TRAVEL_DIR {
     preLeaveRoomCheck();
     my $input = shift;
 
-    if ( ($input =~ /^N[oO]*[rR]*[tT]*[hH]*$/ || $input =~ /^\^$/) && @{$MapAoA[$MapLoc[4]]}[4] == 1) { 
+    if ( $input =~ m/^N{1}O*R*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[4] == 1) { 
 		$count_NS -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-5;
@@ -165,7 +184,7 @@ sub TRAVEL_DIR {
 		}
     }
 
-    elsif ( ($input =~ /^S[oO]*[uU]*[tT]*[hH]*$/ || $input =~ /^[vV]$/) && @{$MapAoA[$MapLoc[4]]}[5] == 1) { 
+    elsif ( $input =~ m/^S{1}O*U*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[5] == 1) { 
 		$count_NS += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]+5;
@@ -188,7 +207,7 @@ sub TRAVEL_DIR {
 		}
     }
 
-    elsif ( ($input =~ /^E[aA]*[sS]*[tT]*$/ || $input =~ /^\>$/) && @{$MapAoA[$MapLoc[4]]}[6] == 1) {
+    elsif ( $input =~ m/^E{1}A*S*T*$/ && @{$MapAoA[$MapLoc[4]]}[6] == 1) {
 		$count_EW += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]+1;
@@ -211,7 +230,7 @@ sub TRAVEL_DIR {
 		}
     }
 
-    elsif ( ($input =~ /^W[eE]*[sS]*[tT]*$/ || $input =~ /^\<$/) && @{$MapAoA[$MapLoc[4]]}[7] == 1) {
+    elsif ( $input =~ m/^W{1}E*S*T*$/ && @{$MapAoA[$MapLoc[4]]}[7] == 1) {
 		$count_EW -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-1;
@@ -232,12 +251,33 @@ sub TRAVEL_DIR {
 			splice @MapLoc,2,1,$count_EW+1; # Previous
 			splice @MapLoc,3,1,$count_NS; # Previous 
 		}
+    } else {
+        if (rand(101) >= 80) { 
+            say RED."=> ".RESET."You should really ".BOLD."LOOK".RESET." where you're going";
+        } 
+        elsif (rand(101) >= 60) {
+            say RED."=> ".RESET."Traveling into the ".BOLD.$input.RESET." wall is ill advised.";
+        }
+        elsif (rand(101) >= 40) {
+            say RED."=> ".RESET."You've ran into the ".BOLD.$input.RESET." wall. Good job.";
+        }
+        elsif (rand(101) >= 20) {
+            my $val = [@_=%cheats]->[1|rand@_];
+            say RED."=> ".RESET."Despite how hard you want to walk through walls, you cannot. Try $val instead.";
+        } 
+        elsif (rand(101) >= 10) {
+            say "You knock your noggin off the wall and hurt yourself! You lose 5hp.";
+        } else {
+            say "Your body attempts to merge with the wall in front of you. You lose 5hp."
+        }
+        return;
     }
+    say "\n\n#-----------------------------------------------------------------#\n\n";
     postEnterRoomCheck();
 }
 
 sub ENTER_PROMPT {
-    say "\nPress [ENTER] to continue";
+    say "\nPress ".BOLD.CYAN."[ENTER]".RESET." to continue";
     my $input = <STDIN>;
     if ($input !~ /\012/) { ENTER_PROMPT(); }
 }
@@ -248,72 +288,77 @@ sub DO_SOMETHING {
         WHAT_DO("HELP");
     }       
     
-    if ($MapLoc[0] == 0 && $MapLoc[1] == 3) {
-        say "\n=> You found a map!";
+    if ($MapLoc[0] == 0 && $MapLoc[1] == 3 && $haveMap == 0) {
+        say YELLOW."\n=> ".RESET.BOLD."You found a map!".RESET;
+        say YELLOW."=> ".RESET."Take time to review the ".BOLD."HELP".RESET." options. During gameplay, acquiring items will alter the possible available actions of your character.\n";
         $haveMap = 1;
+        WHAT_DO("HELP");
     }
 
     # Once you get help from the shopkeeper, the pathing can change to allow access to the rest of the map at 3,2
     if ($have_help == 1 && $MapLoc[0] == 3 && $MapLoc[1] == 2) {
-        print "\nYour help offers to help out. You think to yourself, \"That's redundant.\"\n";
-        print "\"".FAINT."On your word we'll get these logs out of the way.".RESET."\"\n";
+        say "Your help offers to help out. You think to yourself, \"That's redundant.\"";
+        say "\"".FAINT."On your word we'll get these logs out of the way.".RESET."\"";
         ENTER_PROMPT();
         splice @{$MapAoA[$MapLoc[4]]},4,1,1;
         $have_help = 2;
     }
    
     if ($have_help == 0 && $MapLoc[0] == 2 && $MapLoc[1] == 3) {
-       print "\nThe shopkeeper offers his minions help to clear the path\n";
+       say YELLOW."=> ".RESET."The shopkeeper offers his minions help to clear the path";
        $have_help = 1;
-       ENTER_PROMPT();
     }
 
     # Script to destroy the impasse at 0,1 
     if ($MapLoc[0] == 2 && $MapLoc[1] == 0 && $impasse01_cleared == 0) {
-       print "\nYou see a crack in the wall. As you investigate you realize you have a bomb to deal with this certain thing!\n";
-      
-       print "Use bomb? [".BOLD."Y".RESET."es ".BOLD."N".RESET."o ]\n=>";
-       my $input = uc(<STDIN>);
-       chomp($input);
-       $impasse01_cleared = 1;
-       CHECK_MAP();
-       print $ascii_explosion."\n";
-       system("/usr/bin/afplay Sounds/LOZ_Secret.wav &");
-       splice @{$MapAoA[$MapLoc[4]]},7,1,1;
-       ENTER_PROMPT();
+        print "\nYou see a crack in the wall. As you investigate you realize you have a bomb to deal with this certain thing!\n";
+        print "Use bomb? [".BOLD."Y".RESET."es ".BOLD."N".RESET."o ]\n".YELLOW."=> ".RESET;
+        my $input = uc(<STDIN>);
+        chomp($input);
+        if ($input =~ m/^Y+E*S*$/) {
+            $impasse01_cleared = 1;
+            print $ascii_explosion."\n";
+            system("/usr/bin/afplay Sounds/LOZ_Secret.wav &");
+            splice @{$MapAoA[$MapLoc[4]]},7,1,1;
+            UPDATE_MAP_DATA();
+            PRINT_MAP();
+        }
     }
 
     # Script to destroy the impasse at 1,1 while standing in 0,1
     if ($MapLoc[0] == 1 && $MapLoc[1] == 0 && $impasse11_cleared == 0 && $impasse01_cleared == 1) {
-       print "\nYou see a crack in the wall. As you investigate you realize you have a bomb to deal with this certain thing!\n";
-       print "Use bomb? [".BOLD."Y".RESET."es ".BOLD."N".RESET."o ]\n=>";
-       my $input = uc(<STDIN>);
-       chomp($input);
-       $impasse11_cleared = 1;
-       CHECK_MAP();
-       print $ascii_explosion."\n";
-       system("/usr/bin/afplay Sounds/LOZ_Secret.wav &");
-       splice @{$MapAoA[$MapLoc[4]]},5,1,1;
-       ENTER_PROMPT();
+        say "\nYou see a crack in the wall. As you investigate you realize you have a bomb to deal with this certain thing!";
+        print "Use bomb? [".BOLD."Y".RESET."es ".BOLD."N".RESET."o ]\n".YELLOW."=> ".RESET;
+        my $input = uc(<STDIN>);
+        chomp($input);
+        if ($input =~ m/^Y+E*S*/) {
+            $impasse11_cleared = 1;
+            print $ascii_explosion."\n";
+            system("/usr/bin/afplay Sounds/LOZ_Secret.wav &");
+            splice @{$MapAoA[$MapLoc[4]]},5,1,1;
+            UPDATE_MAP_DATA();
+            PRINT_MAP();
+        }
     }
 
     # If the main boss has died, the room will start collapsing. The falling rocks chase you the rest of the way out of the dungeon.
     if ($MapLoc[0] == 4 && $MapLoc[1] == 2 && $main_boss_dead == 0) {
-        print "\nYou fight the main boss!\n";
-	ENTER_PROMPT();
-	splice @{$MapAoA[$MapLoc[4]]},3,1,0;
-	$main_boss_dead = 1;
+        say YELLOW."\n=> ".RESET."You fight the ".RED.BOLD."Main Boss".RESET."!";
+	    ENTER_PROMPT();
+    	splice @{$MapAoA[$MapLoc[4]]},3,1,0;
+    	$main_boss_dead = 1;
     }
     if ($main_boss_dead == 1 && @{$MapAoA[$MapLoc[4]]}[2] == 1) {
         splice @{$MapAoA[$MapLoc[4]]},2,1,2;
     }
     if ($MapLoc[0] == 4 && $MapLoc[1] == 4) {
         $cur_position = $impasse;
-        print "\n\n".BOLD."Congrats, you beat the shit out of the game!".RESET."\n\n";
+        say "\n\n".BOLD."Congrats, you beat the shit out of the game!".RESET."\n";
         ENTER_PROMPT();
         # Tests for existance and if it's not an empty file 
         -e "credits.pl" && -r "credits.pl" ? system("perl credits.pl") : print "[".RED."-".RESET."] Could not open credits.pl\n";
-        system("/usr/bin/afplay Sounds/END.mp3 &");
+        # FINALE
+        #system("/usr/bin/afplay Sounds/END.mp3 &");
         exit;
 	}
 }
@@ -327,79 +372,109 @@ sub STATUS {
 }
 
 sub postEnterRoomCheck {
-	say "\nYou just entered room: ".$MapLoc[0].",".$MapLoc[1]." via ".$MapLoc[2].",".$MapLoc[3];
+    if ($autoMap == 1) {
+        WHAT_DO("MAP");
+    }
+    if ($autoLook == 1) {
+        WHAT_DO("LOOK");
+    }
+	say YELLOW."=> ".RESET."You just entered room: ".$MapLoc[0].",".$MapLoc[1]." via ".$MapLoc[2].",".$MapLoc[3];
 }
 
 sub preLeaveRoomCheck {
-	say "\nYou're going to be leaving room: ".$MapLoc[2].",".$MapLoc[3];
+	say YELLOW."=> ".RESET."You attempt to leave room: ".$MapLoc[2].",".$MapLoc[3];
 }
 
 sub WHAT_DO {
-    while (1) {
         my $input = shift;
         if (not defined $input) {
-            say "\nWhat would you like to do? ";
+            print "\nWhat would you like to do?\n".MAGENTA."%> ".RESET;
             $input = uc(<STDIN>);
             chomp($input);
         }
-        # Check directions 
-        if ($input =~ /^S[oO]*[uU]*[tT]*[hH]*$/ ||$input =~ /^N[oO]*[rR]*[tT]*[hH]*$/ ||$input =~ /^E[aA]*[sS]*[tT]*$/ ||$input =~ /^W[eE]*[sS]*[tT]*$/) {
-            TRAVEL_DIR($input);
-            last; # last will break us out of the while loop
-        }
-        # Take a look around 
-        elsif ($input =~ /^[Ll][oO][oO][kK]$/ || $input =~ /^[dD][iI][rR][eE][cC][tT][iI][oO][nN][sS]*$/) {
-            PRINT_DIRECTIONS();
-        }
         # Help
-        elsif ($input =~ /^[hH][eE][lL][pP][?]*$/ || $input =~ /^\?$/) {
-            print "\nYou can ";
+        if ($input =~ /^H{1}E*L*P*$/ || $input =~ /^\?$/) {
+            say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."HELP".RESET;
+            print GREEN."# ".RESET."You can ";
             print BOLD."LOOK".RESET;
             print ", ".BOLD."GET".RESET;
             if ($haveMap == 1) { 
                 print ", ".BOLD."MAP".RESET; 
-                print ", ".BOLD."PRINT".RESET;
-                print ", ".BOLD."WHERE".RESET;
-                print ", ".BOLD."LOCATION".RESET;
             }
-            print ", ".BOLD."DIRECTION".RESET."[".BOLD."S".RESET."]";
             print ", ".BOLD."CHECK".RESET;
+            print ", ".BOLD."CLEAR".RESET;
             print ", ".BOLD."INV".RESET."[".BOLD."ENTORY".RESET."] ";
             print "and ".BOLD."READ".RESET.".\n"; 
-            say "If you ".BOLD."LOOK".RESET.", you can travel in one of the returned ".BOLD."DIRECTION".RESET."[".BOLD."S".RESET."]";
+            say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."TIPS".RESET;
+            say GREEN."# ".RESET."If you ".BOLD."LOOK".RESET.", you can travel in one of the returned directions.";
+            say GREEN."# ".RESET."Typing ".BOLD."AUTOLOOK".RESET." will enable/disable automatically checking directions when you enter a room.";
+            if ($haveMap == 1) {
+                say GREEN."# ".RESET."Typing ".BOLD."AUTOMAP".RESET." will enable/disable automatically viewing the map when you enter a room.";
+            }
+            say GREEN."# ".RESET."Typing ".BOLD."HELP".RESET." or ".BOLD."?".RESET." will show this menu again.";
+            say GREEN."#----#".RESET;
         }
-        # Check inventory
-        elsif ($input =~ /^[cC][hH][eE][cC][kK]$/ || $input =~ /^[iI][nN][vV][eE]*[nN]*[tT]*[oO]*[rR]*[yY]*$/) { 
-            say "\nCurrent unimplemented";
+        elsif ($input =~ m/^AUTOLOOK$/) {
+            if ($autoLook == 0) { 
+                $autoLook = 1;
+                say "AUTOLOOK activated"
+            } else {
+                $autoLook = 0;
+                say "AUTOLOOK disabled"
+            }
         }
-        # Get item in room
-        elsif ($input =~ /^[gG][eE][tT]/) {
-            say "\nCurrent unimplemented";
+        elsif ($haveMap == 1 && $input =~ m/^AUTOMAP$/) {
+            if ($autoMap == 0) {
+                $autoMap = 1;
+                say "AUTOMAP activated";
+            } else { 
+                $autoMap = 0;
+                say "AUTOMAP disabled";
+            }
         }
-        # Read <object> in room
-        elsif ($input =~ /^[rR][eE][aA][dD]/) {
-            say "\nCurrent unimplemented";
+        # Take a look around 
+        elsif ($input =~ m/^L{1}O*O*K*$/) {
+            PRINT_DIRECTIONS();
         }
         # Show the map
-        elsif ($input =~ /^[mM][aA][pP]$/ || $input =~ /^[pP][rR][iI][nN][tT]$/ || $input =~ /^[wW][hH][eE][rR][eE]$/ || $input =~ /^[lL][oO][cC][aA][tT][iI][oO][nN]$/) {
-            CHECK_MAP();
+        elsif ($haveMap == 1 && $input =~ m/^M{1}A*P*/) {
+            UPDATE_MAP_DATA();
+            PRINT_MAP();
         }
-        else { 
-            say "\nYou can't do that here. Maybe you should seek ".BOLD."HELP".RESET."?";
-            WHAT_DO();
+        # Check directions 
+        elsif ($input =~ m/^S{1}O*U*T*H*$/ || $input =~ m/^N{1}O*R*T*H*$/ || $input =~ m/^E{1}A*S*T*$/ || $input =~ m/^W{1}E*S*T*$/) {
+            TRAVEL_DIR($input);
         }
-    }
+        # Check inventory
+        elsif ($input =~ m/^[cC]+[hH]+[eE]+[cC]+[kK]+$/ || $input =~ /^[iI]+[nN]+[vV]+[eE]*[nN]*[tT]*[oO]*[rR]*[yY]*$/) { 
+            say "Current unimplemented";
+        }
+        # Get item in room
+        elsif ($input =~ m/^[gG]+[eE]*[tT]*/) {
+            say "Current unimplemented";
+        }
+        # Read <object> in room
+        elsif ($input =~ /^[rR]+[eE]*[aA]*[dD]*/) {
+            say "Current unimplemented";
+        }
+        elsif ($input =~ /^[cC]+[lL]+[eE]*[aA]*[rR]*$/) {
+            system("clear");
+        } else {
+            if(rand(101) > 50) { 
+                say RED."=> ".RESET."You can't do that here. Maybe you should seek ".BOLD."HELP".RESET."?";
+            } else {
+                say RED."=> ".RESET."You don't have a ".BOLD.$input.RESET;
+            }
+        }
 }
 
 sub main {
     system("clear");
     while(1) {
-        #CHECK_MAP();
+        UPDATE_MAP_DATA();
         STATUS();
         DO_SOMETHING();
         WHAT_DO();
-        #DO_SOMETHING();
-        #system("clear"); # Currently will clear the screen. I need to add some sort of loop incase the player decides to wait in the room and perform actions.
     }
 }
 
