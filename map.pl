@@ -1,13 +1,13 @@
-#!/usr/bin/env perl
-use warnings;
+#!/usr/bin/env perl -w
 use strict;
-use Term::ANSIColor qw(:constants);
-use Term::ExtendedColor qw(:all);
 use utf8;
+use locale;
+use Term::ANSIColor qw(:constants colored);
+use Term::ExtendedColor qw(:all);
+use Curses::UI;
 use feature qw(say);
 
 my $user_color_choice = "sandybrown";
-my $cur_position = 'X';
 my $undiscovered = ' ';
 my $revealed = fg('blue7','-');
 my $impasse = fg($user_color_choice,'#');
@@ -24,6 +24,8 @@ my $have_help = 0;
 my $haveMap = 0;
 my $autoLook = 0;
 my $autoMap = 0;
+my $cui = new Curses::UI ( -clear_on_exit => 1 ); 
+$cui->leave_curses;
 
 my $ascii_explosion = << "EOL";
                              \\         .  ./
@@ -36,9 +38,190 @@ my $ascii_explosion = << "EOL";
 / \\[_]..........................\\  \\   /  /
 EOL
 
+my %playerChar = (
+    NAME => 'ImSoBadAtTheseNamesBabe',
+    CLASS => 'Black - You said race',
+    PORTRAIT => 'o',
+    HP => '100',
+    LVL => '10',
+    DMG_MIN => '10',
+    DMG_MAX => '20',
+    CRIT_CHANCE => '15',
+    TOTAL_XP => '1000',
+    XP_TIL_NEXT_LVL => '100',
+    TYPICAL => 'N'
+    );
+
+my %charClass = (
+    Dwarf     => { PORTRAIT => 'o', DESC => 'This tiny Joe can fit in small crevices. Their short stature makes them hard to budge.'},
+    Human     => { PORTRAIT => '@', DESC => 'Your average Joe. They can do what most other races can and can\'t'},
+    Elf       => { PORTRAIT => '%', DESC => 'Your skinny pointy eared Joe. They\'re typically faster than most'},
+    Orc       => { PORTRAIT => '&', DESC => 'Your typical ugly looking Joe. Orcs are tough and strong.'},
+    Giant     => { PORTRAIT => 'O', DESC => 'Giants can reach the top of the refridgerator that old adventurers can no longer get to.'},
+    Underling => { PORTRAIT => '_', DESC => 'Underlings slink by in the shadows and like to stay out of site. They like to go under things.'},
+    Overling  => { PORTRAIT => '^', DESC => 'Overlings like to stay in shadows, but prefer to go over things.'},
+    );
+
+sub ENTER_PROMPT {
+    say "\nPress ".BOLD.CYAN."[ENTER]".RESET." to continue";
+    my $input = <STDIN>;
+    if ($input !~ /\012/) { ENTER_PROMPT(); }
+}
+
+sub GAME_INTRO {
+    #####################
+    # GAME START SCREEN #
+    #####################
+    system("clear");
+
+    print "\n\n\n";
+    printf ("%65s", "##############################################\n");
+    printf ("%70s",  colored("Quest Through The Deathly Dungeon of Doom!", "bold"));
+    print "\n";
+    printf ("%65s", "##############################################\n");
+    printf ("%58s", "Version: Gettin out of alpha\n");
+    ENTER_PROMPT();
+    system("clear");
+    say "Welcome!\n";
+    sleep 1;
+    say "You're in a small room with one window. You notice a chair sitting in";
+    say "the corner of the room. There is a table with a computer on it in the";
+    say "middle of the room";
+
+
+    #e it in front of the monitor, and sit down.\n\nYou notice a button on the computer."; 
+    ENTER_PROMPT();
+
+    # 1) http://search.cpan.org/~mdxi/Curses-UI-0.9609/lib/Curses/UI.pm 
+    # 2) http://www.dirvish.org/viewvc/dirvish_1_3_ds/contrib/dirvish-setup.pl?sortby=log&view=diff&r1=80&r2=80&diff_format=s
+    my $question01 = $cui->dialog(
+        -message => 'Press the button?',
+        -buttons => ['yes','no'],
+        -values  => [1,0],
+        -title   => 'Question',
+        );
+    if ($question01) { $cui->leave_curses; }
+    else { $cui->leave_curses; print "Goodbye\n"; exit; }
+
+    say "You press the button and the computer whirs to life.\n";
+    sleep 1;
+    print ITALIC, "*Whhhhhiiiirrrrrrr*\n", RESET;
+    sleep 1;
+    print ITALIC, "*Vvvvvvvrrrrrrrrrrrrr*\n", RESET;
+    sleep 2;
+    print ITALIC, "*BzzzRRRRRrrzzttt*\n", RESET;
+    sleep 2;
+    print ITALIC, "*DING!*\n\n", RESET;
+    say "Suddenly, a message appears .....";
+    ENTER_PROMPT();
+
+    $cui->dialog("Insert coins. 1 play = 75 cents\n\n");
+    $cui->leave_curses;
+
+    say "You think to yourself, \"That's strange, and proceed to check your pockets for some spare change.\"";
+
+    my $coinCount = 1;
+    my $stopCount = 0;
+    while ($coinCount <= 3) {
+        print "=> Insert coin into cd drive? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "] ";
+        my $input = uc(<STDIN>);
+        if ($input =~ m/Y{1}E*S*/) { 
+            print "You've inserted ".YELLOW.$coinCount.RESET; 
+            if ($coinCount == 1) { 
+                say " coin!"; 
+            } else { 
+                say " coins!"; 
+            }
+            $coinCount += 1;
+        }
+        else { 
+            $stopCount += 1;
+            if ($stopCount < 3) { say "Cmon, you know you want to play. Gimme all yer money"; }
+            if ($stopCount == 3) { say "Guess you want to quit, huh?"; exit; } 
+        }
+    }
+
+    say "\n\n#-----------------------------------------------------------------#\n\n";
+    say "\nThe computer displays a character creation screen.\nYou lean in close to take a look.\n\n";
+    say "If you choose to take the default values, just press ".CYAN."[ENTER]".RESET;
+    print GREEN." \$ ".RESET."What do they call you? ".YELLOW."=> ".RESET;
+    my $input = <STDIN>;
+    chomp($input);
+    if ($input) {
+        $playerChar{NAME} = $input;      
+    }
+    say GREEN." \$ ".RESET."Welcome to the fray, ".BOLD.$playerChar{NAME}.RESET.".\n";
+    say GREEN." \$ ".RESET."Choose your race. Currently the race is cosmetic but race traits and flaws will be added later.";
+    say GREEN." \$ ".RESET."#---------------------------------------------------------- ------------------------------------------#";
+    foreach (keys %charClass) {
+        print GREEN." \$ ".RESET.BOLD;
+        printf ("%-13s %-1s %-70s", $_.RESET, ":", $charClass{$_}{DESC});
+        print "\n";
+    }
+    say GREEN." \$ ".RESET."#----------------------------------------------------------------------------------------------------#\n";
+
+    print GREEN." \$ ".RESET."Enter ".BOLD."class name".RESET." to select a character ".YELLOW."=> ".RESET;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+    $input = uc(<STDIN>);
+    chomp($input);
+    if ($input) {
+        foreach my $var (keys %charClass) {
+            if ($input =~ /^$var$/i) {
+                $playerChar{CLASS} = $var;
+                $playerChar{PORTRAIT} = $charClass{$var}{PORTRAIT};
+                if (($playerChar{NAME} =~ m/JENNY/i || $playerChar{NAME} =~ m/BREAKDANCINGCAT/i || $playerChar{NAME} =~ m/JINGLES/i) && $playerChar{CLASS} =~ m/DWARF/i) {
+                    say GREEN." \$ ".RESET."Typical. :P ".RED."<3".RESET;
+                    $playerChar{TYPICAL} = "Y";
+                }
+                elsif ($playerChar{NAME} =~ m/PHILI*P*/i && $playerChar{CLASS} =~ m/GIANT/i) {
+                    say GREEN." \$ ".RESET."Typical. :P ".RED."<3".RESET;
+                    $playerChar{TYPICAL} = "Y";
+                }
+                last;
+            }
+        }
+    }
+
+    #################################
+    # Print all character information
+    #################################
+    say GREEN." \$ ".RESET."Here is your character sheet\n";
+    print GREEN." \$ ".RESET."$_ : $playerChar{$_}\n" for (keys %playerChar);
+    ENTER_PROMPT();
+
+    say "As soon as you press the enter key, you get sucked in through the computer monitor.";
+    say "Your heart is ".BLINK."pounding".RESET." so hard and you have trouble breathing.";
+    say "You collapse onto the floor in a panic. As you bring your hands to your face you";
+    say "notice something strange. You no longer have your normal hands. You're in control";
+    say "of another body.".ITALIC."\"Did I get sucked into the game!?!?\"".RESET." your mind races.";
+    say "The only way out of this mess is to see what the path ahead of you has in store\n";
+    say "\n".ITALIC."\"If there's one thing for sure, it's that I, $playerChar{NAME} the $playerChar{CLASS} will find a way out of this mess.\"".RESET;
+    ENTER_PROMPT();
+}
+
+sub FINALE {
+    sleep 15;
+    my $finalQuestion = $cui->dialog(
+        -message => 'What\'ll it be?',
+        -buttons => ['yes','no'],
+        -values  => [1,0],
+        -title   => 'Question',
+        );
+    if ($finalQuestion) { 
+        $cui->leave_curses; 
+        system("clear"); 
+        say "\n\n\n\nMission Accomplished";
+        system("open \"END.png\"")
+    }
+    else { 
+        $cui->leave_curses; 
+        system("clear"); 
+        print "\n\n\n\nNo\n"; 
+    }
+
+}
+
 #Location on the grid = current X[0], current Y[1], previous X[2], previous Y[3], AoAIndexCount[4]
 my @MapLoc = (0,0,0,0,0);
-
 # data structure: X[0], Y[1], state[2], boss[3], exit N[4], exit S[5], exit E[6], exit W[7], enemy[8], tile[9]
 # state[2] will be 0=undiscovered,1=discovered,2=impasse,3=shop
 # enemy[8] will be 0=no enemy,1=enemy
@@ -73,12 +256,12 @@ my @MapAoA = ( [0,0,1,0,0,1,0,0,0,0], #[0] array.
     );
 
 my %cheats = (
-    'doom1' => 'idclip',
-    'hexen' => 'casper',
-    'doom2' => 'idspispopd',
-    'heretic' => 'kitty',
-    'chexquest' => 'charlesjacobi',
-    'halflife' => 'noclip',
+    doom1 => 'idclip',
+    hexen => 'casper',
+    doom2 => 'idspispopd',
+    heretic => 'kitty',
+    chexquest => 'charlesjacobi',
+    halflife => 'noclip',
     );
 
 sub tileTypeChecker {
@@ -126,7 +309,7 @@ sub PRINT_MAP {
         for(my $j=0; $j <= 4; $j++) {
 	        # Prints your current position out from the @MapLoc array
             if ($MapLoc[0] == $j && $MapLoc[1] == $i) { 
-    	        print "[$cur_position]";
+    	        print "[$playerChar{PORTRAIT}]";
 	        }
 	        elsif (@{$MapAoA[$innerCount]}[2] == 3 && $is_shop == 1) { print "[$shop]"; }
             elsif (@{$MapAoA[$innerCount]}[2] == 2) { print "[$impasse]"; }
@@ -158,10 +341,12 @@ sub PRINT_DIRECTIONS {
 
 sub TRAVEL_DIR {
     # Final check to make sure you can't leave the current room without possibly encountering something
-    preLeaveRoomCheck();
+
     my $input = shift;
 
+
     if ( $input =~ m/^N{1}O*R*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[4] == 1) { 
+        PRELEAVEROOMCHECK();
 		$count_NS -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-5;
@@ -185,6 +370,7 @@ sub TRAVEL_DIR {
     }
 
     elsif ( $input =~ m/^S{1}O*U*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[5] == 1) { 
+        PRELEAVEROOMCHECK();
 		$count_NS += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]+5;
@@ -208,6 +394,7 @@ sub TRAVEL_DIR {
     }
 
     elsif ( $input =~ m/^E{1}A*S*T*$/ && @{$MapAoA[$MapLoc[4]]}[6] == 1) {
+        PRELEAVEROOMCHECK();
 		$count_EW += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]+1;
@@ -231,6 +418,7 @@ sub TRAVEL_DIR {
     }
 
     elsif ( $input =~ m/^W{1}E*S*T*$/ && @{$MapAoA[$MapLoc[4]]}[7] == 1) {
+        PRELEAVEROOMCHECK();
 		$count_EW -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-1;
@@ -252,35 +440,26 @@ sub TRAVEL_DIR {
 			splice @MapLoc,3,1,$count_NS; # Previous 
 		}
     } else {
-        if (rand(101) >= 80) { 
-            say RED."=> ".RESET."You should really ".BOLD."LOOK".RESET." where you're going";
-        } 
-        elsif (rand(101) >= 60) {
-            say RED."=> ".RESET."Traveling into the ".BOLD.$input.RESET." wall is ill advised.";
-        }
-        elsif (rand(101) >= 40) {
-            say RED."=> ".RESET."You've ran into the ".BOLD.$input.RESET." wall. Good job.";
-        }
+        if (rand(101) >= 80) { say RED."=> ".RESET."You should really ".BOLD."LOOK".RESET." where you're going"; } 
+        elsif (rand(101) >= 60) { say RED."=> ".RESET."Traveling into the ".BOLD.$input.RESET." wall is ill advised."; }
+        elsif (rand(101) >= 40) { say RED."=> ".RESET."You've ran into the ".BOLD.$input.RESET." wall. Good job."; }
         elsif (rand(101) >= 20) {
             my $val = [@_=%cheats]->[1|rand@_];
             say RED."=> ".RESET."Despite how hard you want to walk through walls, you cannot. Try $val instead.";
         } 
-        elsif (rand(101) >= 10) {
-            say "You knock your noggin off the wall and hurt yourself! You lose 5hp.";
+        elsif (rand(101) >= 10) { 
+            say "You knock your noggin off the wall and hurt yourself! ".RED."You lose 5hp".RESET.".";
+            $playerChar{HP} -= 5;
         } else {
-            say "Your body attempts to merge with the wall in front of you. You lose 5hp."
+            say "Your body attempts to merge with the wall in front of you.".RED."You lose 5hp".RESET.".";
+            $playerChar{HP} -= 5; 
         }
         return;
     }
     say "\n\n#-----------------------------------------------------------------#\n\n";
-    postEnterRoomCheck();
+    POSTENTERROOMCHECK();
 }
 
-sub ENTER_PROMPT {
-    say "\nPress ".BOLD.CYAN."[ENTER]".RESET." to continue";
-    my $input = <STDIN>;
-    if ($input !~ /\012/) { ENTER_PROMPT(); }
-}
 
 sub DO_SOMETHING {
     if ($MapLoc[0] == 0 && $MapLoc[1] == 0 && $initialHelpScreen == 1) {
@@ -352,13 +531,13 @@ sub DO_SOMETHING {
         splice @{$MapAoA[$MapLoc[4]]},2,1,2;
     }
     if ($MapLoc[0] == 4 && $MapLoc[1] == 4) {
-        $cur_position = $impasse;
         say "\n\n".BOLD."Congrats, you beat the shit out of the game!".RESET."\n";
         ENTER_PROMPT();
-        # Tests for existance and if it's not an empty file 
+        # Tests for existance and if it's not an empty file then rolls the credits
         -e "credits.pl" && -r "credits.pl" ? system("perl credits.pl") : print "[".RED."-".RESET."] Could not open credits.pl\n";
         # FINALE
         #system("/usr/bin/afplay Sounds/END.mp3 &");
+        FINALE();
         exit;
 	}
 }
@@ -371,7 +550,7 @@ sub STATUS {
    # print "\n";
 }
 
-sub postEnterRoomCheck {
+sub POSTENTERROOMCHECK {
     if ($autoMap == 1) {
         WHAT_DO("MAP");
     }
@@ -379,10 +558,25 @@ sub postEnterRoomCheck {
         WHAT_DO("LOOK");
     }
 	say YELLOW."=> ".RESET."You just entered room: ".$MapLoc[0].",".$MapLoc[1]." via ".$MapLoc[2].",".$MapLoc[3];
+
+    # Random monster check
+    if (@{$MapAoA[$MapLoc[4]]}[8] == 1 && rand(101) > 50) {
+        say "A wild monster appears!"
+    } else {
+        if (rand(101) > 75) { say YELLOW."=> ".RESET."You feel as if you're being watched."; }
+        elsif (rand(101) > 75) { say YELLOW."=> ".RESET."You feel unsettled."; }
+        elsif (rand(101) > 75) { say YELLOW."=> ".RESET."You see a shadow dart across the distance."; }
+        else { say YELLOW."=> ".RESET."No matter how much you try to relax, the knot in your stomach persists."; }
+    }
 }
 
-sub preLeaveRoomCheck {
+sub PRELEAVEROOMCHECK {
 	say YELLOW."=> ".RESET."You attempt to leave room: ".$MapLoc[2].",".$MapLoc[3];
+
+    # Random monster check
+    if (@{$MapAoA[$MapLoc[4]]}[8] == 1 && rand(101) > 33) {
+        say YELLOW."=> ".RESET."As you approach the exit, a monster appears out of nowhere and lunges at you!"
+    }
 }
 
 sub WHAT_DO {
@@ -392,8 +586,15 @@ sub WHAT_DO {
             $input = uc(<STDIN>);
             chomp($input);
         }
+        if ($input =~ m/^HELLO/) {
+            if (rand(101) > 50) {
+                say YELLOW."=> ".RESET."Goodbye.";
+            } else {
+                say YELLOW."=> ".RESET."Nice weather we're having today.";
+            }
+        }
         # Help
-        if ($input =~ /^H{1}E*L*P*$/ || $input =~ /^\?$/) {
+        elsif ($input =~ m/^HELP$/ || $input =~ m/^\?{1}$/) {
             say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."HELP".RESET;
             print GREEN."# ".RESET."You can ";
             print BOLD."LOOK".RESET;
@@ -401,10 +602,9 @@ sub WHAT_DO {
             if ($haveMap == 1) { 
                 print ", ".BOLD."MAP".RESET; 
             }
-            print ", ".BOLD."CHECK".RESET;
             print ", ".BOLD."CLEAR".RESET;
             print ", ".BOLD."INV".RESET."[".BOLD."ENTORY".RESET."] ";
-            print "and ".BOLD."READ".RESET.".\n"; 
+            say "and ".BOLD."READ".RESET; 
             say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."TIPS".RESET;
             say GREEN."# ".RESET."If you ".BOLD."LOOK".RESET.", you can travel in one of the returned directions.";
             say GREEN."# ".RESET."Typing ".BOLD."AUTOLOOK".RESET." will enable/disable automatically checking directions when you enter a room.";
@@ -427,6 +627,7 @@ sub WHAT_DO {
             if ($autoMap == 0) {
                 $autoMap = 1;
                 say "AUTOMAP activated";
+                WHAT_DO("MAP");
             } else { 
                 $autoMap = 0;
                 say "AUTOMAP disabled";
@@ -446,18 +647,18 @@ sub WHAT_DO {
             TRAVEL_DIR($input);
         }
         # Check inventory
-        elsif ($input =~ m/^[cC]+[hH]+[eE]+[cC]+[kK]+$/ || $input =~ /^[iI]+[nN]+[vV]+[eE]*[nN]*[tT]*[oO]*[rR]*[yY]*$/) { 
+        elsif ($input =~ m/^I{1}N*V*E*N*T*O*R*Y*$/) { 
             say "Current unimplemented";
         }
         # Get item in room
-        elsif ($input =~ m/^[gG]+[eE]*[tT]*/) {
+        elsif ($input =~ m/^G{1}E*T*/) {
             say "Current unimplemented";
         }
         # Read <object> in room
-        elsif ($input =~ /^[rR]+[eE]*[aA]*[dD]*/) {
+        elsif ($input =~ m/^R{1}E*A*D*/) {
             say "Current unimplemented";
         }
-        elsif ($input =~ /^[cC]+[lL]+[eE]*[aA]*[rR]*$/) {
+        elsif ($input =~ m/^CLEAR$/) {
             system("clear");
         } else {
             if(rand(101) > 50) { 
@@ -468,7 +669,8 @@ sub WHAT_DO {
         }
 }
 
-sub main {
+sub MAIN {
+    GAME_INTRO();
     system("clear");
     while(1) {
         UPDATE_MAP_DATA();
@@ -478,4 +680,4 @@ sub main {
     }
 }
 
-main();
+MAIN();
