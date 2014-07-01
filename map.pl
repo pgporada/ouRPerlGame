@@ -22,7 +22,7 @@ my $main_boss_dead = 0;
 my $initialHelpScreen = 1;
 my $have_help = 0;
 my $haveMap = 0;
-my $autoLook = 0;
+my $autoLook = 1;
 my $autoMap = 0;
 my $cui = new Curses::UI ( -clear_on_exit => 1 ); 
 $cui->leave_curses;
@@ -39,16 +39,17 @@ my $ascii_explosion = << "EOL";
 EOL
 
 my %playerChar = (
-    NAME => 'ImSoBadAtTheseNamesBabe',
-    CLASS => 'Black - You said race',
+    NAME => '"I\'m so bad at these names babe"',
+    CLASS => '"Black, you said race"',
     PORTRAIT => 'o',
-    HP => '100',
-    LVL => '10',
+    CURRENT_HP => '100',
+    MAX_HP => '100',
+    LVL => '1',
     DMG_MIN => '10',
     DMG_MAX => '20',
     CRIT_CHANCE => '15',
-    TOTAL_XP => '1000',
-    XP_TIL_NEXT_LVL => '100',
+    CURRENT_XP => '0',
+    NEXT_LVL_XP => '100',
     TYPICAL => 'N'
     );
 
@@ -181,13 +182,7 @@ sub GAME_INTRO {
         }
     }
 
-    #################################
-    # Print all character information
-    #################################
-    say GREEN." \$ ".RESET."Here is your character sheet\n";
-    print GREEN." \$ ".RESET."$_ : $playerChar{$_}\n" for (keys %playerChar);
     ENTER_PROMPT();
-
     say "As soon as you press the enter key, you get sucked in through the computer monitor.";
     say "Your heart is ".BLINK."pounding".RESET." so hard and you have trouble breathing.";
     say "You collapse onto the floor in a panic. As you bring your hands to your face you";
@@ -257,10 +252,7 @@ my @MapAoA = ( [0,0,1,0,0,1,0,0,0,0], #[0] array.
 
 my %cheats = (
     doom1 => 'idclip',
-    hexen => 'casper',
     doom2 => 'idspispopd',
-    heretic => 'kitty',
-    chexquest => 'charlesjacobi',
     halflife => 'noclip',
     );
 
@@ -440,19 +432,19 @@ sub TRAVEL_DIR {
 			splice @MapLoc,3,1,$count_NS; # Previous 
 		}
     } else {
-        if (rand(101) >= 80) { say RED."=> ".RESET."You should really ".BOLD."LOOK".RESET." where you're going"; } 
-        elsif (rand(101) >= 60) { say RED."=> ".RESET."Traveling into the ".BOLD.$input.RESET." wall is ill advised."; }
-        elsif (rand(101) >= 40) { say RED."=> ".RESET."You've ran into the ".BOLD.$input.RESET." wall. Good job."; }
-        elsif (rand(101) >= 20) {
+        if (rand(121) >= 100) { say RED."=> ".RESET."You should really ".BOLD."LOOK".RESET." where you're going"; } 
+        elsif (rand(121) >= 80) { say RED."=> ".RESET."Traveling into the ".BOLD.$input.RESET." wall is ill advised."; }
+        elsif (rand(121) >= 60) { say RED."=> ".RESET."You've ran into the ".BOLD.$input.RESET." wall. Good job."; }
+        elsif (rand(121) >= 40) {
             my $val = [@_=%cheats]->[1|rand@_];
             say RED."=> ".RESET."Despite how hard you want to walk through walls, you cannot. Try $val instead.";
         } 
-        elsif (rand(101) >= 10) { 
+        elsif (rand(121) >= 20) { 
             say "You knock your noggin off the wall and hurt yourself! ".RED."You lose 5hp".RESET.".";
-            $playerChar{HP} -= 5;
+            $playerChar{CURRENT_HP} -= 5;
         } else {
             say "Your body attempts to merge with the wall in front of you.".RED."You lose 5hp".RESET.".";
-            $playerChar{HP} -= 5; 
+            $playerChar{CURRENT_HP} -= 5; 
         }
         return;
     }
@@ -551,7 +543,7 @@ sub STATUS {
 }
 
 sub POSTENTERROOMCHECK {
-    if ($autoMap == 1) {
+    if ($autoMap == 1 && $haveMap == 1) {
         WHAT_DO("MAP");
     }
     if ($autoLook == 1) {
@@ -657,6 +649,26 @@ sub WHAT_DO {
         # Read <object> in room
         elsif ($input =~ m/^R{1}E*A*D*/) {
             say "Current unimplemented";
+        }
+        elsif ($input =~ m/^C{1}H*A*R*A*C*T*E*R*$/) {
+            printf("%-24s %3s %-35s", BOLD."Name".RESET, " : ", $playerChar{NAME}); print "\n";
+            printf("%-24s %3s %-35s", BOLD."Class".RESET, " : ", $playerChar{CLASS}); print "\n";
+            printf("%-24s %3s %-35s", BOLD."Level".RESET, " : ", $playerChar{LVL}); print "\n";
+            
+            my $HP_STATUS = ($playerChar{CURRENT_HP} / $playerChar{MAX_HP}) * 100;
+            if ($HP_STATUS >= 75) {
+                use integer;
+                printf("%-24s %3s %-35s", BOLD."HP".RESET, " : ", GREEN.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
+            }
+            elsif ($HP_STATUS >= 40) {
+                use integer;
+                printf("%-24s %3s %-35s", BOLD."HP".RESET, " : ", YELLOW.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
+            } else {
+                printf("%-24s %3s %-35s", BOLD."HP".RESET, " : ", RED.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
+            }
+            
+            printf("%-24s %3s %-35s", BOLD."DMG".RESET, " : ", $playerChar{DMG_MIN}."-".$playerChar{DMG_MAX}); print "\n";
+            printf("%-24s %3s %-35s", BOLD."XP to next level".RESET, " : ", $playerChar{CURRENT_XP}."/".$playerChar{NEXT_LVL_XP}); print "\n";
         }
         elsif ($input =~ m/^CLEAR$/) {
             system("clear");
