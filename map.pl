@@ -102,7 +102,7 @@ my %items = (
         ARMOR01 => {
             NAME => 'Leather Armor Mk.1',
             DESC => 'Your basic all leather apparel. Finely crafted from tanned brahmin hide.',
-            PRICE => '170'
+            PRICE => '170',
             DEF => '8',
             TYPE => 'ARMOR',
         },
