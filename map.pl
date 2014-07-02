@@ -732,6 +732,14 @@ sub WHAT_DO {
                 say "#".$_." ".$playerChar{INVENTORY}[$_];
             }
         }
+        elsif ($input =~ m/^E{1}Q*U*I*P*/) {
+            if ($#{$playerChar{INVENTORY}} == 0) {
+                say RED."=> ".RESET."You have no items to equip.";
+            } else {
+                say "What would you like to equip?";
+                WHAT_DO("INVENTORY");
+            }
+        }
         # Get item in room
         elsif ($input =~ m/^GET/) {
             say "Currently expirimental";
