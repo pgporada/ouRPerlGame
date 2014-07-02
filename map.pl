@@ -5,6 +5,7 @@ use locale;
 use Term::ANSIColor qw(:constants colored);
 use Term::ExtendedColor qw(:all);
 use Curses::UI;
+use Data::Dumper;
 use feature qw(say);
 
 my $user_color_choice = "sandybrown";
@@ -50,7 +51,12 @@ my %playerChar = (
     CRIT_CHANCE => '15',
     CURRENT_XP => '0',
     NEXT_LVL_XP => '100',
-    TYPICAL => 'N'
+    TYPICAL => 'N',
+    EQUIPPED_LEFT => '',
+    EQUIPPED_RIGHT => '',
+    EQUIPPED_HEAD => '',
+    EQUIPPED_BODY => '',
+    GOLD => '5',
     );
 
 my %charClass = (
@@ -62,6 +68,56 @@ my %charClass = (
     Underling => { PORTRAIT => '_', DESC => 'Underlings slink by in the shadows and like to stay out of site. They like to go under things.'},
     Overling  => { PORTRAIT => '^', DESC => 'Overlings like to stay in shadows, but prefer to go over things.'},
     );
+
+# Autovivification
+my %items = (
+        SWORD01 => {
+            NAME => 'Long Sword',
+            DESC => 'Your typical metal sword.',
+            PRICE => '300',
+            DMG => '12',
+            TYPE => 'WEAPON',
+        },
+        SWORD02 => {
+            NAME => 'Short Sword',
+            DESC => 'A short sword for the short adventurer.',
+            PRICE => '150',
+            DMG => '6',
+            TYPE => 'WEAPON',
+        },
+        HELMET01 => {
+            NAME => 'Wool Cap',
+            DESC => 'This wool cap will protect you from the slightest scratches.',
+            PRICE => "125",
+            DEF => '6',
+            TYPE => 'HELMET',
+        },
+        HELMET02 => {
+            NAME => 'Steel Helmet',
+            DESC => 'This helmet will help protect your head.',
+            PRICE => '350',
+            DEF => '12',
+            TYPE => 'HELMET',
+        },
+        ARMOR01 => {
+            NAME => 'Leather Armor Mk.1',
+            DESC => 'Your basic all leather apparel. Finely crafted from tanned brahmin hide.',
+            PRICE => '170'
+            DEF => '8',
+            TYPE => 'ARMOR',
+        },
+        ARMOR02 => {
+            NAME => 'Leather Armor Mk.2',
+            DESC => "An enhanced version of the basic leather armor with extra layers of\nprotection. Finely crafted from tanned brahmin hide.",
+            PRICE => '375',
+            DEF => '14',
+            TYPE => 'ARMOR',
+        },
+    );
+
+push@{$playerChar{INVENTORY}},'Sword';
+
+
 
 sub ENTER_PROMPT {
     say "\nPress ".BOLD.CYAN."[ENTER]".RESET." to continue";
@@ -85,41 +141,62 @@ sub GAME_INTRO {
     system("clear");
     say "Welcome!\n";
     sleep 1;
-    say "You're in a small room with one window. You notice a chair sitting in";
-    say "the corner of the room. There is a table with a computer on it in the";
-    say "middle of the room";
 
+    say "You're in a small room with one window. You notice a chair sitting in\nthe corner of the room. There is a table with a computer on it in the\nmiddle of the room. Behind you is a door.";
+    my $chairMoved = 0;
+    my $input;
+    while(1) {
+        print "\nWhat would you like to do?\n".MAGENTA."%> ".RESET;
+        $input = uc(<STDIN>);
+        chomp($input);
+        if ($chairMoved == 0 && ($input =~ m/^GET CHAIR$/ || $input =~ m/^MOVE CHAIR$/)) {
+            say "You move the chair over to the table and sit down. You notice ";
+            say "a big red button on the computer. There is a note on the table ";
+            say "that reads in big letters, \"".BOLD."DO NOT TOUCH".RESET."\"";
+            $chairMoved = 1;
+            next;
+        }
+        elsif ($input =~ m/^LOOK$/) { say YELLOW."=> ".RESET."Seek and ye shall find. Where may not always be clear."; }
+        elsif ($input =~ m/^LOOK WINDOW$/ || $input =~ m/^CHECK WINDOW$/) { say "You look out the window. You realize that you're several floors up in\na skyscraper. Their is a storm raging outside but you can make out the\ndim lights of cars and other businesses below. Squinting you can see\nthe corner of Base and 64th."}
+        elsif ($input =~ m/^USE DOOR$/ || $input =~ m/^CHECK DOOR$/) {
+            say "You jiggle the knob but the door is firmly shut. There is no lock on\nthe inside. The door seems pointless to you";
+        }
+        elsif ($input =~ m/^FORCE THE DOOR$/ || $input =~ m/^FORCE DOOR$/) {
+            say "You get a running start and kick the door with everything you've got.\nThe door does not budge and your knee shatters complete. As you lay on the\nground screaming, the door falls and crushes you.\n\nYour days trapped in this room are over, but so is your life.";
+            sleep 3;
+            exit;
+        }
+        elsif ($input =~ m/^WHERE$/) { say "TW92ZSB0aGUgY2hhaXIsIHByZXNzIHRoZSBidXR0b24sIGFuZCBjb25ncmF0cyBmb3IgZGVjb2RpbmcgdGhpcw=="; }
+        elsif ($input =~ m/^SEEK$/) { say YELLOW."=> ".RESET."You didn't actually believe me did you?"; }
+        elsif ($chairMoved == 1 && ($input =~ m/^USE COMPUTER$/ || $input =~ m/^PRESS BUTTON$/ || $input =~ m/^PUSH BUTTON$/ || $input =~ m/^TOUCH BUTTON$/)) {
+            # Match the word before the first occurrence of white space. The \s* makes sure there's no white space at the beginning of the line JUSTIN CASE.
+            $input =~ m/^\s*(\w+)/;
+            say "You ".BOLD.$1.RESET" the button on the computer and it whirs to life.";
+            last;
+        } else {
+            say YELLOW."=> ".RESET."I don't understand what you mean by ".BOLD.$input.RESET;
+        }
+    }
 
     #e it in front of the monitor, and sit down.\n\nYou notice a button on the computer."; 
     ENTER_PROMPT();
-
-    # 1) http://search.cpan.org/~mdxi/Curses-UI-0.9609/lib/Curses/UI.pm 
-    # 2) http://www.dirvish.org/viewvc/dirvish_1_3_ds/contrib/dirvish-setup.pl?sortby=log&view=diff&r1=80&r2=80&diff_format=s
-    my $question01 = $cui->dialog(
-        -message => 'Press the button?',
-        -buttons => ['yes','no'],
-        -values  => [1,0],
-        -title   => 'Question',
-        );
-    if ($question01) { $cui->leave_curses; }
-    else { $cui->leave_curses; print "Goodbye\n"; exit; }
-
-    say "You press the button and the computer whirs to life.\n";
     sleep 1;
-    print ITALIC, "*Whhhhhiiiirrrrrrr*\n", RESET;
+    say ITALIC, "*Whhhhhiiiirrrrrrr*", RESET;
     sleep 1;
-    print ITALIC, "*Vvvvvvvrrrrrrrrrrrrr*\n", RESET;
+    say ITALIC, "*Vvvvvvvrrrrrrrrrrrrr*", RESET;
     sleep 2;
-    print ITALIC, "*BzzzRRRRRrrzzttt*\n", RESET;
-    sleep 2;
-    print ITALIC, "*DING!*\n\n", RESET;
-    say "Suddenly, a message appears .....";
+    say ITALIC, "*BzzzRRRRRrrzzttt*", RESET;
+    sleep 3;
+    say ITALIC, "*DING!*\n", RESET;
+    say "Suddenly, a wild popup appears! ";
+    say ITALIC."\"If only you had some computer repair flyers...\"".RESET." you think to yourself.";
     ENTER_PROMPT();
 
-    $cui->dialog("Insert coins. 1 play = 75 cents\n\n");
+    $cui->dialog("Insert coins. 1 play = 3gp");
     $cui->leave_curses;
 
     say "You think to yourself, \"That's strange, and proceed to check your pockets for some spare change.\"";
+    say "In your pockets you find ".YELLOW.$playerChar{GOLD}.RESET."gp. How convienient!";
 
     my $coinCount = 1;
     my $stopCount = 0;
@@ -134,10 +211,11 @@ sub GAME_INTRO {
                 say " coins!"; 
             }
             $coinCount += 1;
+            $playerChar{GOLD} -= 1;
         }
         else { 
             $stopCount += 1;
-            if ($stopCount < 3) { say "Cmon, you know you want to play. Gimme all yer money"; }
+            if ($stopCount < 3) { say "You know you want to play. I can hear ".YELLOW.$playerChar{GOLD}.RESET."gp in there."; }
             if ($stopCount == 3) { say "Guess you want to quit, huh?"; exit; } 
         }
     }
@@ -146,7 +224,7 @@ sub GAME_INTRO {
     say "\nThe computer displays a character creation screen.\nYou lean in close to take a look.\n\n";
     say "If you choose to take the default values, just press ".CYAN."[ENTER]".RESET;
     print GREEN." \$ ".RESET."What do they call you? ".YELLOW."=> ".RESET;
-    my $input = <STDIN>;
+    $input = <STDIN>;
     chomp($input);
     if ($input) {
         $playerChar{NAME} = $input;      
@@ -172,6 +250,9 @@ sub GAME_INTRO {
                 if (($playerChar{NAME} =~ m/JENNY/i || $playerChar{NAME} =~ m/BREAKDANCINGCAT/i || $playerChar{NAME} =~ m/JINGLES/i) && $playerChar{CLASS} =~ m/DWARF/i) {
                     say GREEN." \$ ".RESET."Typical. :P ".RED."<3".RESET;
                     $playerChar{TYPICAL} = "Y";
+                }
+                elsif ($playerChar{NAME} =~ m/^JENNY$/i && $playerChar{CLASS} =~ m/^GIANT$/i) {
+                    say GREEN." \$ ".RESET."Maybe in your dreams :P ".RED."<3".RESET;
                 }
                 elsif ($playerChar{NAME} =~ m/PHILI*P*/i && $playerChar{CLASS} =~ m/GIANT/i) {
                     say GREEN." \$ ".RESET."Typical. :P ".RED."<3".RESET;
@@ -463,6 +544,7 @@ sub DO_SOMETHING {
         say YELLOW."\n=> ".RESET.BOLD."You found a map!".RESET;
         say YELLOW."=> ".RESET."Take time to review the ".BOLD."HELP".RESET." options. During gameplay, acquiring items will alter the possible available actions of your character.\n";
         $haveMap = 1;
+        WHAT_DO("GET");
         WHAT_DO("HELP");
     }
 
@@ -540,6 +622,10 @@ sub STATUS {
    # print "X Y X Y ?\n";
    # print $_." " foreach ( @MapLoc );
    # print "\n";
+   if ($playerChar{CURRENT_HP} <= 0) {
+        say "Unfortunately you have died. Fortunately you can play again.";
+        exit;
+   }
 }
 
 sub POSTENTERROOMCHECK {
@@ -578,6 +664,7 @@ sub WHAT_DO {
             $input = uc(<STDIN>);
             chomp($input);
         }
+
         if ($input =~ m/^HELLO/) {
             if (rand(101) > 50) {
                 say YELLOW."=> ".RESET."Goodbye.";
@@ -640,43 +727,60 @@ sub WHAT_DO {
         }
         # Check inventory
         elsif ($input =~ m/^I{1}N*V*E*N*T*O*R*Y*$/) { 
-            say "Current unimplemented";
+            say "In your inventory you currently have";
+            foreach (0..$#{$playerChar{INVENTORY}}) {
+                say "#".$_." ".$playerChar{INVENTORY}[$_];
+            }
         }
         # Get item in room
-        elsif ($input =~ m/^G{1}E*T*/) {
-            say "Current unimplemented";
+        elsif ($input =~ m/^GET/) {
+            say "Currently expirimental";
+            push@{$playerChar{INVENTORY}},'Map';
+        }
+        elsif ($input =~ m/^DROP/) {
+            say "Currently expirimental";
+            pop@{$playerChar{INVENTORY}};
         }
         # Read <object> in room
         elsif ($input =~ m/^R{1}E*A*D*/) {
             say "Current unimplemented";
         }
         elsif ($input =~ m/^C{1}H*A*R*A*C*T*E*R*$/) {
-            printf("%-24s %3s %-35s", BOLD."Name".RESET, " : ", $playerChar{NAME}); print "\n";
-            printf("%-24s %3s %-35s", BOLD."Class".RESET, " : ", $playerChar{CLASS}); print "\n";
-            printf("%-24s %3s %-35s", BOLD."Level".RESET, " : ", $playerChar{LVL}); print "\n";
-            
+            printf("%-28s %3s %-35s", BOLD."Name".RESET, " : ", $playerChar{NAME}); print "\n";
+            printf("%-28s %3s %-35s", BOLD."Class".RESET, " : ", $playerChar{CLASS}); print "\n";
+            printf("%-28s %3s %-35s", BOLD."Level".RESET, " : ", $playerChar{LVL}); print "\n";
             my $HP_STATUS = ($playerChar{CURRENT_HP} / $playerChar{MAX_HP}) * 100;
             if ($HP_STATUS >= 75) {
                 use integer;
-                printf("%-24s %3s %-35s", BOLD."HP".RESET, " : ", GREEN.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
+                printf("%-28s %3s %-35s", BOLD."HP".RESET, " : ", GREEN.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
             }
             elsif ($HP_STATUS >= 40) {
                 use integer;
-                printf("%-24s %3s %-35s", BOLD."HP".RESET, " : ", YELLOW.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
+                printf("%-28s %3s %-35s", BOLD."HP".RESET, " : ", YELLOW.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
             } else {
-                printf("%-24s %3s %-35s", BOLD."HP".RESET, " : ", RED.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
+                printf("%-28s %3s %-35s", BOLD."HP".RESET, " : ", RED.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
             }
-            
-            printf("%-24s %3s %-35s", BOLD."DMG".RESET, " : ", $playerChar{DMG_MIN}."-".$playerChar{DMG_MAX}); print "\n";
-            printf("%-24s %3s %-35s", BOLD."XP to next level".RESET, " : ", $playerChar{CURRENT_XP}."/".$playerChar{NEXT_LVL_XP}); print "\n";
+            printf("%-28s %3s %-35s", BOLD."DMG".RESET, " : ", $playerChar{DMG_MIN}."-".$playerChar{DMG_MAX}); print "\n";
+            printf("%-28s %3s %-35s", BOLD."XP to next level".RESET, " : ", $playerChar{CURRENT_XP}."/".$playerChar{NEXT_LVL_XP}); print "\n";
+            printf("%-28s %3s %-35s", BOLD."Gold".RESET, " : ", YELLOW.$playerChar{GOLD}.RESET."gp"); print "\n";
+            printf("%-28s %3s %-35s", BOLD."Equipped helmet".RESET, " : ", $playerChar{EQUIPPED_HEAD}); print "\n";
+            printf("%-28s %3s %-35s", BOLD."Equipped armor".RESET, " : ", $playerChar{EQUIPPED_BODY}); print "\n";
+            # Orcs and Giants can have 2 weapons equipped
+            if ($playerChar{CLASS} =~ m/^ORC/i || $playerChar{CLASS} =~ m/GIANT/i) {
+                printf("%-28s %3s %-35s", BOLD."Equipped left hand".RESET, " : ", $playerChar{EQUIPPED_LEFT}); print "\n";
+            }
+            printf("%-28s %3s %-35s", BOLD."Equipped right hand".RESET, " : ", $playerChar{EQUIPPED_RIGHT}); print "\n";
         }
+        elsif ($input =~ m/^H{1}U*R*T*/) {
+            $playerChar{CURRENT_HP} -= 20;
+         }
         elsif ($input =~ m/^CLEAR$/) {
             system("clear");
         } else {
             if(rand(101) > 50) { 
                 say RED."=> ".RESET."You can't do that here. Maybe you should seek ".BOLD."HELP".RESET."?";
             } else {
-                say RED."=> ".RESET."You don't have a ".BOLD.$input.RESET;
+                say RED."=> ".RESET."You cannot perform ".BOLD.$input.RESET ." at this point in time";
             }
         }
 }
