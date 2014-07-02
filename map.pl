@@ -149,7 +149,7 @@ sub GAME_INTRO {
         print "\nWhat would you like to do?\n".MAGENTA."%> ".RESET;
         $input = uc(<STDIN>);
         chomp($input);
-        if ($chairMoved == 0 && ($input =~ m/^GET CHAIR$/ || $input =~ m/^MOVE CHAIR$/)) {
+        if ($chairMoved == 0 && ($input =~ m/^GET CHAIR$/ || $input =~ m/^MOVE CHAIR$/ || $input =~ m/^PUSH CHAIR/)) {
             say "You move the chair over to the table and sit down. You notice ";
             say "a big red button on the computer. There is a note on the table ";
             say "that reads in big letters, \"".BOLD."DO NOT TOUCH".RESET."\"";
@@ -727,17 +727,20 @@ sub WHAT_DO {
         }
         # Check inventory
         elsif ($input =~ m/^I{1}N*V*E*N*T*O*R*Y*$/) { 
-            say "In your inventory you currently have";
-            foreach (0..$#{$playerChar{INVENTORY}}) {
-                say "#".$_." ".$playerChar{INVENTORY}[$_];
+            if (@{$playerChar{INVENTORY}}) {
+                say "In your inventory you currently have";
+                foreach (0..$#{$playerChar{INVENTORY}}) {
+                  say "#".$_." ".$playerChar{INVENTORY}[$_];
+                }
+            } else {
+                say RED."=> ".RESET."Your inventory is emtpy.";
             }
         }
-        elsif ($input =~ m/^E{1}Q*U*I*P*/) {
-            if ($#{$playerChar{INVENTORY}} == 0) {
-                say RED."=> ".RESET."You have no items to equip.";
-            } else {
-                say "What would you like to equip?";
+        elsif ($input =~ m/^EQUIP$/) {
+            if (@{$playerChar{INVENTORY}}) {
                 WHAT_DO("INVENTORY");
+            } else {
+                say RED."=> ".RESET."You have no items to equip.";
             }
         }
         # Get item in room
@@ -794,7 +797,7 @@ sub WHAT_DO {
 }
 
 sub MAIN {
-    GAME_INTRO();
+    #GAME_INTRO();
     system("clear");
     while(1) {
         UPDATE_MAP_DATA();
