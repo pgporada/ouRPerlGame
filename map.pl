@@ -21,13 +21,14 @@ my $impasse01_cleared = 0;
 my $impasse11_cleared = 0;
 my $main_boss_dead = 0;
 my $initialHelpScreen = 1;
-my $have_help = 0;
+my $haveHelp = 0;
 my $haveMap = 0;
 my $autoLook = 1;
 my $autoMap = 0;
+my @noun;
+my $talkedToBurlyGuys = 0;
 my $cui = new Curses::UI ( -clear_on_exit => 1 ); 
 $cui->leave_curses;
-
 my $ascii_explosion = << "EOL";
                              \\         .  ./
                            \\      .:";'.:.."   /
@@ -414,9 +415,7 @@ sub PRINT_DIRECTIONS {
 
 sub TRAVEL_DIR {
     # Final check to make sure you can't leave the current room without possibly encountering something
-
     my $input = shift;
-
 
     if ( $input =~ m/^N{1}O*R*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[4] == 1) { 
         PRELEAVEROOMCHECK();
@@ -549,17 +548,14 @@ sub DO_SOMETHING {
     }
 
     # Once you get help from the shopkeeper, the pathing can change to allow access to the rest of the map at 3,2
-    if ($have_help == 1 && $MapLoc[0] == 3 && $MapLoc[1] == 2) {
-        say "Your help offers to help out. You think to yourself, \"That's redundant.\"";
-        say "\"".FAINT."On your word we'll get these logs out of the way.".RESET."\"";
-        ENTER_PROMPT();
-        splice @{$MapAoA[$MapLoc[4]]},4,1,1;
-        $have_help = 2;
+    if ($MapLoc[0] == 3 && $MapLoc[1] == 2) {
+        if ($haveHelp == 0 || $haveHelp == 1) {
+            push @noun,'BURLY GUYS';
+        }
     }
    
-    if ($have_help == 0 && $MapLoc[0] == 2 && $MapLoc[1] == 3) {
-       say YELLOW."=> ".RESET."The shopkeeper offers his minions help to clear the path";
-       $have_help = 1;
+    if ($MapLoc[0] == 2 && $MapLoc[1] == 3) {
+        push @noun,'SHOPKEEP';
     }
 
     # Script to destroy the impasse at 0,1 
@@ -616,16 +612,70 @@ sub DO_SOMETHING {
 	}
 }
 
+sub DIALOGUE_SYSTEM {
+    if ($MapLoc[0] == 3 && $MapLoc[1] == 2) {
+        if ($haveHelp == 0) {
+            say YELLOW."=> ".RESET."The burly guy in front of you says, \"There's a bunch of giant logs";
+            say "   blocking the path. You'll have to come back later\"";
+            $talkedToBurlyGuys = 1;
+        }
+        elsif ($haveHelp == 1) {
+            say "Your help offers to help out. You think to yourself, \"That's redundant.\"";
+            say "\"".FAINT."On your word we'll get these logs out of the way.".RESET."\"";
+            ENTER_PROMPT();
+            splice @{$MapAoA[$MapLoc[4]]},4,1,1;
+            UPDATE_MAP_DATA();
+            WHAT_DO("LOOK");
+            $haveHelp = 2;
+        }
+    }
+    if ($MapLoc[0] == 2 && $MapLoc[1] == 3) {
+        if ($haveHelp == 0 && $talkedToBurlyGuys == 1) {
+            say YELLOW."=> ".RESET."The shopkeeper looks at you and says, \"I've heard that you need some";
+            say "   help to clear out the path. For ".YELLOW."75".RESET."gp I can have my guys help";
+            say "   you out.\"";
+            print "\nWhat would you say? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "]\n".MAGENTA."%> ".RESET;
+            my $input = uc<STDIN>;
+            chomp ($input);
+            if ($input =~ m/Y{1}E*S*/) { 
+                $haveHelp = 1;
+                say YELLOW."=> ".RESET."The shopkeeper says \"Thanks, let me know if you need anything else.\"";
+            } else {
+                say YELLOW."=> ".RESET."The shopkeeper says, \"Would you like to buy anything?\"";
+                print "\nWhat would you say? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "]\n".MAGENTA."%> ".RESET;
+                $input = uc<STDIN>;
+                chomp ($input);
+                if ($input =~ m/Y{1}E*S*/) {
+                    say YELLOW."=> ".RESET."The shopkeeper shows you his stock";
+                } else {
+                    say YELLOW."=> ".RESET."The shopkeeper says \"Thanks anyways. You know where to find me\"";
+                }
+            }
+        } else {
+            say YELLOW."=> ".RESET."The shopkeeper says, \"Would you like to buy anything?\"";
+            print "\nWhat would you say? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "]\n".MAGENTA."%> ".RESET;
+            my $input = uc<STDIN>;
+            chomp ($input);
+            if ($input =~ m/Y{1}E*S*/) {
+                say YELLOW."=> ".RESET."The shopkeeper shows you his stock";
+            } else {
+                say YELLOW."=> ".RESET."The shopkeeper says \"Thanks anyways. You know where to find me\"";
+            }
+        }
+    }
+}
+
 sub STATUS {
    # print @$_, "\n" foreach ( @MapAoA );
    # print "EW: ".$count_EW." NS: ".$count_NS."\n";
    # print "X Y X Y ?\n";
    # print $_." " foreach ( @MapLoc );
    # print "\n";
-   if ($playerChar{CURRENT_HP} <= 0) {
+    pop @noun;
+    if ($playerChar{CURRENT_HP} <= 0) {
         say "Unfortunately you have died. Fortunately you can play again.";
         exit;
-   }
+    }
 }
 
 sub POSTENTERROOMCHECK {
@@ -659,6 +709,7 @@ sub PRELEAVEROOMCHECK {
 
 sub WHAT_DO {
         my $input = shift;
+
         if (not defined $input) {
             print "\nWhat would you like to do?\n".MAGENTA."%> ".RESET;
             $input = uc(<STDIN>);
@@ -750,7 +801,7 @@ sub WHAT_DO {
         }
         elsif ($input =~ m/^DROP/) {
             say "Currently expirimental";
-            pop@{$playerChar{INVENTORY}};
+            pop @{$playerChar{INVENTORY}};
         }
         # Read <object> in room
         elsif ($input =~ m/^R{1}E*A*D*/) {
@@ -784,7 +835,14 @@ sub WHAT_DO {
         }
         elsif ($input =~ m/^H{1}U*R*T*/) {
             $playerChar{CURRENT_HP} -= 20;
-         }
+        }
+        elsif ($input =~ m/^TALK$/ || $input =~ m/^TALK TO$/) {
+            say RED."=> ".RESET."Talk to who (or what)?";
+        }
+        elsif ( @noun && ($input =~ m/^TALK $noun[0]$/ || $input =~ m/^TALK TO $noun[0]$/)) {
+            say "You speak to $noun[0]";
+            DIALOGUE_SYSTEM();
+        }
         elsif ($input =~ m/^CLEAR$/) {
             system("clear");
         } else {
@@ -804,6 +862,7 @@ sub MAIN {
         STATUS();
         DO_SOMETHING();
         WHAT_DO();
+       #DIALOGUE_SYSTEM();
     }
 }
 
