@@ -21,12 +21,10 @@ my $impasse01_cleared = 0;
 my $impasse11_cleared = 0;
 my $main_boss_dead = 0;
 my $initialHelpScreen = 1;
-my $haveHelp = 0;
 my $haveMap = 0;
 my $autoLook = 1;
 my $autoMap = 0;
 my @noun;
-my $talkedToBurlyGuys = 0;
 my $cui = new Curses::UI ( -clear_on_exit => 1 ); 
 $cui->leave_curses;
 my $ascii_explosion = << "EOL";
@@ -113,6 +111,17 @@ my %items = (
             PRICE => '375',
             DEF => '14',
             TYPE => 'ARMOR',
+        },
+    );
+
+my %quests = (
+    MOVELOGS => { 
+        NAME => "Find a way past the fallen trees.",
+        STATE_A => '0', 
+        STATE_B => '0', 
+        LOG_ENTRY_A1 => "The shopkeeper mentioned to go back to the burly guys.",
+        LOG_ENTRY_B1 => "Some burly guys say that the path is blocked. I have to find a way around it.",
+        LOG_ENTRY_A2 => "I've gotten the burly guys to clear a path and I can now head North from here.",
         },
     );
 
@@ -318,11 +327,11 @@ my @MapAoA = ( [0,0,1,0,0,1,0,0,0,0], #[0] array.
 		       [0,2,0,0,1,1,0,0,1,0], #[10]
 		       [1,2,0,0,0,1,1,0,1,0], #[11]
 		       [2,2,0,0,0,0,1,1,1,0], #[12]
-		       [3,2,0,0,0,1,0,1,1,0], #[13]
+		       [3,2,0,0,0,1,0,1,0,0], #[13]
 		       [4,2,0,0,0,1,0,0,1,0], #[14]
 		       [0,3,0,0,1,1,0,0,1,0], #[15]
 		       [1,3,0,0,1,1,0,0,1,0], #[16]
-		       [2,3,3,0,0,1,0,0,1,0], #[17]
+		       [2,3,3,0,0,1,0,0,0,0], #[17]
 		       [3,3,0,0,1,1,0,0,1,0], #[18]
 		       [4,3,0,0,0,1,0,0,1,0], #[19]
 		       [0,4,0,0,1,0,1,0,1,0], #[20]
@@ -549,13 +558,15 @@ sub DO_SOMETHING {
 
     # Once you get help from the shopkeeper, the pathing can change to allow access to the rest of the map at 3,2
     if ($MapLoc[0] == 3 && $MapLoc[1] == 2) {
-        if ($haveHelp == 0 || $haveHelp == 1) {
+        if ($quests{MOVELOGS}{STATE_A} == 0 || $quests{MOVELOGS}{STATE_B} == 1) {
+            say YELLOW."=> ".RESET."You see some ".BOLD."burly guys".RESET." standing around";
             push @noun,'BURLY GUYS';
         }
     }
    
     if ($MapLoc[0] == 2 && $MapLoc[1] == 3) {
-        push @noun,'SHOPKEEP';
+        say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." looks at you.";
+        push @noun,'SHOPKEEPER';
     }
 
     # Script to destroy the impasse at 0,1 
@@ -612,25 +623,27 @@ sub DO_SOMETHING {
 	}
 }
 
-sub DIALOGUE_SYSTEM {
+sub QUEST_SYSTEM {
     if ($MapLoc[0] == 3 && $MapLoc[1] == 2) {
-        if ($haveHelp == 0) {
+        if ($quests{MOVELOGS}{STATE_A} == 0) {
             say YELLOW."=> ".RESET."The burly guy in front of you says, \"There's a bunch of giant logs";
             say "   blocking the path. You'll have to come back later\"";
-            $talkedToBurlyGuys = 1;
+            $quests{MOVELOGS}{STATE_B} = 1;
+            say YELLOW."\n=> ".RESET."Your journal has been updated!";
         }
-        elsif ($haveHelp == 1) {
+        elsif ($quests{MOVELOGS}{STATE_A} == 1) {
             say "Your help offers to help out. You think to yourself, \"That's redundant.\"";
             say "\"".FAINT."On your word we'll get these logs out of the way.".RESET."\"";
             ENTER_PROMPT();
             splice @{$MapAoA[$MapLoc[4]]},4,1,1;
             UPDATE_MAP_DATA();
-            WHAT_DO("LOOK");
-            $haveHelp = 2;
+            $quests{MOVELOGS}{STATE_A} = 2;
+            $quests{MOVELOGS}{STATE_B} = 2;
+            say YELLOW."\n=> ".RESET."Your journal has been updated!";
         }
     }
     if ($MapLoc[0] == 2 && $MapLoc[1] == 3) {
-        if ($haveHelp == 0 && $talkedToBurlyGuys == 1) {
+        if ($quests{MOVELOGS}{STATE_A} == 0 && $quests{MOVELOGS}{STATE_B} == 1) {
             say YELLOW."=> ".RESET."The shopkeeper looks at you and says, \"I've heard that you need some";
             say "   help to clear out the path. For ".YELLOW."75".RESET."gp I can have my guys help";
             say "   you out.\"";
@@ -638,8 +651,9 @@ sub DIALOGUE_SYSTEM {
             my $input = uc<STDIN>;
             chomp ($input);
             if ($input =~ m/Y{1}E*S*/) { 
-                $haveHelp = 1;
+                $quests{MOVELOGS}{STATE_A} = 1;
                 say YELLOW."=> ".RESET."The shopkeeper says \"Thanks, let me know if you need anything else.\"";
+                say YELLOW."\n=> ".RESET."Your journal has been updated!";
             } else {
                 say YELLOW."=> ".RESET."The shopkeeper says, \"Would you like to buy anything?\"";
                 print "\nWhat would you say? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "]\n".MAGENTA."%> ".RESET;
@@ -690,7 +704,8 @@ sub POSTENTERROOMCHECK {
     # Random monster check
     if (@{$MapAoA[$MapLoc[4]]}[8] == 1 && rand(101) > 50) {
         say "A wild monster appears!"
-    } else {
+    } 
+    elsif (@{$MapAoA[$MapLoc[4]]}[8] == 1) {
         if (rand(101) > 75) { say YELLOW."=> ".RESET."You feel as if you're being watched."; }
         elsif (rand(101) > 75) { say YELLOW."=> ".RESET."You feel unsettled."; }
         elsif (rand(101) > 75) { say YELLOW."=> ".RESET."You see a shadow dart across the distance."; }
@@ -836,12 +851,32 @@ sub WHAT_DO {
         elsif ($input =~ m/^H{1}U*R*T*/) {
             $playerChar{CURRENT_HP} -= 20;
         }
+        elsif ($input =~ m/^J{1}O*U*R*N*A*L*$/) {
+            say "# You check your journal #";
+            say "#------------------------#";
+            foreach (keys %quests) {
+                if ($quests{$_}{STATE_B} == 1) {
+                    say WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
+                    say BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
+                }
+                if ($quests{$_}{STATE_A} == 1) {
+                    say BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
+                }
+                if ($quests{$_}{STATE_A} == 2 && $quests{$_}{STATE_B} == 2) {
+                    say WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
+                    say BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
+                    say BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
+                    say BLUE."=> ".RESET.$quests{$_ }{LOG_ENTRY_A2};
+                    say WHITE."=> ".RESET."Quest: Completed";
+                }
+            }
+        }
         elsif ($input =~ m/^TALK$/ || $input =~ m/^TALK TO$/) {
             say RED."=> ".RESET."Talk to who (or what)?";
         }
         elsif ( @noun && ($input =~ m/^TALK $noun[0]$/ || $input =~ m/^TALK TO $noun[0]$/)) {
             say "You speak to $noun[0]";
-            DIALOGUE_SYSTEM();
+            QUEST_SYSTEM();
         }
         elsif ($input =~ m/^CLEAR$/) {
             system("clear");
