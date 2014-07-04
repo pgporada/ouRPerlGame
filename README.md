@@ -10,9 +10,13 @@ Steps to use
 1) Currently the sounds only work on osx because I'm utilizing /usr/bin/afplay in several spots.
 <br>
 2) You will need some modules. I personally love to use Cpanminus
+<br>
 2a) Cpanminus - https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm
+<br>
 2aa) <b>curl -L http://cpanmin.us | perl - App::cpanminus</b>
+<br>
 2b) <b>sudo cpanm Term::ANSIColor Term::ExtendedColor Curses::UI Data::Dumper</b>
+<br>
 3) To run the game, first grant the execute permission:  <b>chmod +x map.pl</b>
 <br>
 4) Then, run the game: <b>./map.pl<b>
