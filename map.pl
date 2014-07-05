@@ -1,6 +1,11 @@
 #!/usr/bin/env perl -w
 use strict;
+
+# http://perldoc.perl.org/open.html
+# http://stackoverflow.com/questions/627661/how-can-i-output-utf-8-from-perl/627975#627975
+use open qw/:std :utf8/;
 use utf8;
+
 use locale;
 use Term::ANSIColor qw(:constants colored);
 use Term::ExtendedColor qw(:all);
@@ -24,7 +29,7 @@ my $initialHelpScreen = 1;
 my $haveMap = 0;
 my $autoLook = 1;
 my $autoMap = 0;
-my @noun;
+my @talkToPerson;
 my $cui = new Curses::UI ( -clear_on_exit => 1 ); 
 $cui->leave_curses;
 my $ascii_explosion = << "EOL";
@@ -55,17 +60,18 @@ my %playerChar = (
     EQUIPPED_RIGHT => '',
     EQUIPPED_HEAD => '',
     EQUIPPED_BODY => '',
-    GOLD => '5',
+    GOLD => '100',
     );
 
 my %charClass = (
-    Dwarf     => { PORTRAIT => 'o', DESC => 'This tiny Joe can fit in small crevices. Their short stature makes them hard to budge.'},
+    Dwarf     => { PORTRAIT => 'ö', DESC => 'This tiny Joe can fit in small crevices. Their short stature makes them hard to budge.'},
     Human     => { PORTRAIT => '@', DESC => 'Your average Joe. They can do what most other races can and can\'t'},
-    Elf       => { PORTRAIT => '%', DESC => 'Your skinny pointy eared Joe. They\'re typically faster than most'},
+    Elf       => { PORTRAIT => '§', DESC => 'Your skinny pointy eared Joe. They\'re typically faster than most'},
     Orc       => { PORTRAIT => '&', DESC => 'Your typical ugly looking Joe. Orcs are tough and strong.'},
-    Giant     => { PORTRAIT => 'O', DESC => 'Giants can reach the top of the refridgerator that old adventurers can no longer get to.'},
-    Underling => { PORTRAIT => '_', DESC => 'Underlings slink by in the shadows and like to stay out of site. They like to go under things.'},
-    Overling  => { PORTRAIT => '^', DESC => 'Overlings like to stay in shadows, but prefer to go over things.'},
+    Giant     => { PORTRAIT => 'Ö', DESC => 'Giants can reach the top of the refridgerator that old adventurers can no longer get to.'},
+    Underling => { PORTRAIT => '℧', DESC => 'Underlings slink by in the shadows and like to stay out of site. They like to go under things.'},
+    Overling  => { PORTRAIT => 'Ω', DESC => 'Overlings like to stay in shadows, but prefer to go over things.'},
+    Wizard    => { PORTRAIT => 'ᐂ', DESC => 'Mutha fuckin wizards never die.'}
     );
 
 # Autovivification
@@ -146,7 +152,7 @@ sub GAME_INTRO {
     printf ("%70s",  colored("Quest Through The Deathly Dungeon of Doom!", "bold"));
     print "\n";
     printf ("%65s", "##############################################\n");
-    printf ("%58s", "Version: Gettin out of alpha\n");
+    printf ("%58s", "Version: Gigantic fucking alpha\n");
     ENTER_PROMPT();
     system("clear");
     say "Welcome!\n";
@@ -154,6 +160,8 @@ sub GAME_INTRO {
 
     say "You're in a small room with one window. You notice a chair sitting in\nthe corner of the room. There is a table with a computer on it in the\nmiddle of the room. Behind you is a door.";
     my $chairMoved = 0;
+    my $tempVar = 0;
+    my $tempName;
     my $input;
     while(1) {
         print "\nWhat would you like to do?\n".MAGENTA."%> ".RESET;
@@ -169,11 +177,24 @@ sub GAME_INTRO {
         elsif ($input =~ m/^LOOK$/) { say YELLOW."=> ".RESET."Seek and ye shall find. Where may not always be clear."; }
         elsif ($input =~ m/^LOOK WINDOW$/ || $input =~ m/^CHECK WINDOW$/) { say "You look out the window. You realize that you're several floors up in\na skyscraper. Their is a storm raging outside but you can make out the\ndim lights of cars and other businesses below. Squinting you can see\nthe corner of Base and 64th."}
         elsif ($input =~ m/^USE DOOR$/ || $input =~ m/^CHECK DOOR$/) {
-            say "You jiggle the knob but the door is firmly shut. There is no lock on\nthe inside. The door seems pointless to you";
+            say "You jiggle the knob but the door is firmly shut. There is no lock on the inside.";
+            if ($tempVar == 0) {
+                say "There is a sliding viewport that you knock on. A voice responds and asks for your name.";
+                print ITALIC."\n\"What is your name?\"\n".RESET.MAGENTA."%> ".RESET;
+                $tempName = uc(<STDIN>);
+                chomp($tempName);
+                say "\"Oh yeah, nice to meet you $tempName, it seems the door is stuck.\" You think about\nforcing it open.";
+                $tempVar = 1;
+            }
         }
-        elsif ($input =~ m/^FORCE THE DOOR$/ || $input =~ m/^FORCE DOOR$/) {
-            say "You get a running start and kick the door with everything you've got.\nThe door does not budge and your knee shatters complete. As you lay on the\nground screaming, the door falls and crushes you.\n\nYour days trapped in this room are over, but so is your life.";
-            sleep 3;
+        elsif ($input =~ m/^FORCE THE DOOR/ || $input =~ m/^FORCE DOOR/) {
+            if ($tempName !~ m/^RON/) {
+                say "You get a running start and kick the door with everything you've got.\nThe door does not budge and your knee shatters complete. As you lay on the\nground screaming, the door falls and crushes you.\n\nYour days trapped in this room are over, but so is your life.";
+            } else {
+                say "You absolutely blow the door in half. The force of your kick blasts a shockwave through\nthe person that was on the other side and turns them into a fine mist of red against the\nback wall. You see an elevator and ride it down to freedom town.\n".BOLD."Congratulations!".RESET;
+            }
+            sleep 10;
+            system("clear");
             exit;
         }
         elsif ($input =~ m/^WHERE$/) { say "TW92ZSB0aGUgY2hhaXIsIHByZXNzIHRoZSBidXR0b24sIGFuZCBjb25ncmF0cyBmb3IgZGVjb2RpbmcgdGhpcw=="; }
@@ -212,7 +233,8 @@ sub GAME_INTRO {
     my $stopCount = 0;
     while ($coinCount <= 3) {
         print "=> Insert coin into cd drive? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "] ";
-        my $input = uc(<STDIN>);
+        $input = uc(<STDIN>);
+        chomp($input);
         if ($input =~ m/Y{1}E*S*/) { 
             print "You've inserted ".YELLOW.$coinCount.RESET; 
             if ($coinCount == 1) { 
@@ -248,8 +270,7 @@ sub GAME_INTRO {
         print "\n";
     }
     say GREEN." \$ ".RESET."#----------------------------------------------------------------------------------------------------#\n";
-
-    print GREEN." \$ ".RESET."Enter ".BOLD."class name".RESET." to select a character ".YELLOW."=> ".RESET;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+    print GREEN." \$ ".RESET."Enter ".BOLD."class name".RESET." to select a character ".YELLOW."=> ".RESET;
     $input = uc(<STDIN>);
     chomp($input);
     if ($input) {
@@ -560,13 +581,13 @@ sub DO_SOMETHING {
     if ($MapLoc[0] == 3 && $MapLoc[1] == 2) {
         if ($quests{MOVELOGS}{STATE_A} == 0 || $quests{MOVELOGS}{STATE_B} == 1) {
             say YELLOW."=> ".RESET."You see some ".BOLD."burly guys".RESET." standing around";
-            push @noun,'BURLY GUYS';
+            push @talkToPerson,'BURLY GUYS';
         }
     }
    
     if ($MapLoc[0] == 2 && $MapLoc[1] == 3) {
         say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." looks at you.";
-        push @noun,'SHOPKEEPER';
+        push @talkToPerson,'SHOPKEEPER';
     }
 
     # Script to destroy the impasse at 0,1 
@@ -644,50 +665,58 @@ sub QUEST_SYSTEM {
     }
     if ($MapLoc[0] == 2 && $MapLoc[1] == 3) {
         if ($quests{MOVELOGS}{STATE_A} == 0 && $quests{MOVELOGS}{STATE_B} == 1) {
-            say YELLOW."=> ".RESET."The shopkeeper looks at you and says, \"I've heard that you need some";
+            say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." looks at you and says, \"I've heard that you need some";
             say "   help to clear out the path. For ".YELLOW."75".RESET."gp I can have my guys help";
             say "   you out.\"";
             print "\nWhat would you say? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "]\n".MAGENTA."%> ".RESET;
             my $input = uc<STDIN>;
             chomp ($input);
-            if ($input =~ m/Y{1}E*S*/) { 
-                $quests{MOVELOGS}{STATE_A} = 1;
-                say YELLOW."=> ".RESET."The shopkeeper says \"Thanks, let me know if you need anything else.\"";
-                say YELLOW."\n=> ".RESET."Your journal has been updated!";
+            if ($input =~ m/Y{1}E*S*/) {
+                if ($playerChar{GOLD} >= 75 ) { 
+                    $quests{MOVELOGS}{STATE_A} = 1;
+                    say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." says \"Thanks, let me know if you need anything else.\"";
+                    say YELLOW."\n=> ".RESET."Your journal has been updated!";
+                    $playerChar{GOLD} -= 75;
+                } else {
+                    say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." says \"You don't have enough money for that right now. Come back later\"";
+                }
             } else {
                 say YELLOW."=> ".RESET."The shopkeeper says, \"Would you like to buy anything?\"";
                 print "\nWhat would you say? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "]\n".MAGENTA."%> ".RESET;
                 $input = uc<STDIN>;
                 chomp ($input);
                 if ($input =~ m/Y{1}E*S*/) {
-                    say YELLOW."=> ".RESET."The shopkeeper shows you his stock";
+                    say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." shows you his stock";
                 } else {
-                    say YELLOW."=> ".RESET."The shopkeeper says \"Thanks anyways. You know where to find me\"";
+                    say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." says \"Thanks anyways. You know where to find me\"";
                 }
             }
         } else {
-            say YELLOW."=> ".RESET."The shopkeeper says, \"Would you like to buy anything?\"";
+            say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." says, \"Would you like to buy anything?\"";
             print "\nWhat would you say? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "]\n".MAGENTA."%> ".RESET;
             my $input = uc<STDIN>;
             chomp ($input);
             if ($input =~ m/Y{1}E*S*/) {
-                say YELLOW."=> ".RESET."The shopkeeper shows you his stock";
+                say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." shows you his stock";
             } else {
-                say YELLOW."=> ".RESET."The shopkeeper says \"Thanks anyways. You know where to find me\"";
+                say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." says \"Thanks anyways. You know where to find me\"";
             }
         }
     }
 }
 
 sub STATUS {
-   # print @$_, "\n" foreach ( @MapAoA );
-   # print "EW: ".$count_EW." NS: ".$count_NS."\n";
-   # print "X Y X Y ?\n";
-   # print $_." " foreach ( @MapLoc );
+   # say @$_ foreach ( @MapAoA );
+   # say "EW: ".$count_EW." NS: ".$count_NS;
+   # say "X Y X Y ?";
+   # say $_." " foreach ( @MapLoc );
    # print "\n";
-    pop @noun;
+    pop @talkToPerson;
+
     if ($playerChar{CURRENT_HP} <= 0) {
         say "Unfortunately you have died. Fortunately you can play again.";
+        sleep 5;
+        system("clear");
         exit;
     }
 }
@@ -856,26 +885,30 @@ sub WHAT_DO {
             say "#------------------------#";
             foreach (keys %quests) {
                 if ($quests{$_}{STATE_B} == 1) {
-                    say WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
-                    say BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
+                    say "#".WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
+                    say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
                 }
                 if ($quests{$_}{STATE_A} == 1) {
-                    say BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
+                    say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
                 }
                 if ($quests{$_}{STATE_A} == 2 && $quests{$_}{STATE_B} == 2) {
-                    say WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
-                    say BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
-                    say BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
-                    say BLUE."=> ".RESET.$quests{$_ }{LOG_ENTRY_A2};
-                    say WHITE."=> ".RESET."Quest: Completed";
+                    say "#".WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
+                    say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
+                    say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
+                    say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_ }{LOG_ENTRY_A2};
+                    say "#".WHITE."=> ".RESET."Quest: Completed";
                 }
             }
+            say "#------------------------#";
+        }
+        elsif ($input =~ m/^CHECK TIME$/ || $input =~ m/^TIME$/ || $input =~ m/^CLOCK$/ || $input =~ m/^CHECK CLOCK$/) {
+            say YELLOW."=> ".RESET."You check your watch and it says ".localtime;
         }
         elsif ($input =~ m/^TALK$/ || $input =~ m/^TALK TO$/) {
             say RED."=> ".RESET."Talk to who (or what)?";
         }
-        elsif ( @noun && ($input =~ m/^TALK $noun[0]$/ || $input =~ m/^TALK TO $noun[0]$/)) {
-            say "You speak to $noun[0]";
+        elsif ( @talkToPerson && ($input =~ m/^TALK $talkToPerson[0]$/ || $input =~ m/^TALK TO $talkToPerson[0]$/)) {
+            say "You speak to $talkToPerson[0]";
             QUEST_SYSTEM();
         }
         elsif ($input =~ m/^CLEAR$/) {
@@ -890,14 +923,13 @@ sub WHAT_DO {
 }
 
 sub MAIN {
-    #GAME_INTRO();
+    GAME_INTRO();
     system("clear");
     while(1) {
         UPDATE_MAP_DATA();
         STATUS();
         DO_SOMETHING();
         WHAT_DO();
-       #DIALOGUE_SYSTEM();
     }
 }
 
