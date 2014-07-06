@@ -121,6 +121,15 @@ my %items = (
     );
 
 my %quests = (
+    ESCAPE => {
+        NAME => "Escape from wherever the hell you got warped into.",
+        STATE_A => '2',
+        STATE_B => '2',
+        LOG_ENTRY_A1 => "Some shit",
+        LOG_ENTRY_B1 => "Some other shit",
+        LOG_ENTRY_A2 => "More shit",
+        LOG_ENTRY_B2 => "The most shit",
+        },
     MOVELOGS => { 
         NAME => "Find a way past the fallen trees.",
         STATE_A => '0', 
@@ -128,9 +137,13 @@ my %quests = (
         LOG_ENTRY_A1 => "The shopkeeper mentioned to go back to the burly guys.",
         LOG_ENTRY_B1 => "Some burly guys say that the path is blocked. I have to find a way around it.",
         LOG_ENTRY_A2 => "I've gotten the burly guys to clear a path and I can now head North from here.",
+        LOG_ENTRY_B2 => "",
         },
     );
 
+my @fightIntro = ("C'MERE YOU!","WHY I OUGHTTA","I'M GONNA PASTEURIZE YOU!","I'M GONNA MURDA YA!","I'MA WARIO I'MA GONNA WEEN","I'M GUNNA MOYDA YA!","I'M GONNA FOLD YOUR CLOTHES WITH YOU IN 'EM","YOU WANNA SEE TOUGH? I'LL SHOW YOU TOUGH","I NEVER LOSE!","LEMME AT 'EM");
+my @fightWords = ("POW!","ZAP!","BLAMMO!","THUD!!","CRACK!", "BIFF!", "WHOOP","OVER 9000!!!", "BOOP", "BOP", "BLAM SLAM", "TOASTIEEE", "SHAZZAM!", "BANG!", "SPLAT!", "SHWOMP!", "BOING!", "GLAVEN!", "JINKIES!", "YOWZA!", "UHH! I FEEL GOOD!","BONK!","CLONK!","HHHWHACK!","HHHWWAAMM!","THUNK!!","KRUNCH!","MEOW!","SPREZCEHN ZE POW!","HUUU!","KABLAM!");
+my @fightEnd = ("BURY ME WITH MY...MONEY","X_X","X_x","I'M GONNA TELL MY MOM!","HEY, YOU'RE MEAN","RUDE","*trumpet* WAAA WAAA WAAAAAAA","FUCK!", "SHITCOCKS!");
 push@{$playerChar{INVENTORY}},'Sword';
 
 
@@ -179,7 +192,7 @@ sub GAME_INTRO {
         elsif ($input =~ m/^USE DOOR$/ || $input =~ m/^CHECK DOOR$/) {
             say "You jiggle the knob but the door is firmly shut. There is no lock on the inside.";
             if ($tempVar == 0) {
-                say "There is a sliding viewport that you knock on. A voice responds and asks for your name.";
+                say "There is a sliding viewport abd you knock on door. You see a pair of eyes stare back\nat you as the viewport opens up. A gruff voice asks for your name.";
                 print ITALIC."\n\"What is your name?\"\n".RESET.MAGENTA."%> ".RESET;
                 $tempName = uc(<STDIN>);
                 chomp($tempName);
@@ -189,7 +202,7 @@ sub GAME_INTRO {
         }
         elsif ($input =~ m/^FORCE THE DOOR/ || $input =~ m/^FORCE DOOR/) {
             if ($tempName !~ m/^RON/) {
-                say "You get a running start and kick the door with everything you've got.\nThe door does not budge and your knee shatters complete. As you lay on the\nground screaming, the door falls and crushes you.\n\nYour days trapped in this room are over, but so is your life.";
+                say "You get a running start and kick the door with everything you've got.\nThe door does not budge and your knee shatters completely. As you lay on the\nground screaming, the door falls and crushes you.\n\nYour days trapped in this room are over, but so is your life.";
             } else {
                 say "You absolutely blow the door in half. The force of your kick blasts a shockwave through\nthe person that was on the other side and turns them into a fine mist of red against the\nback wall. You see an elevator and ride it down to freedom town.\n".BOLD."Congratulations!".RESET;
             }
@@ -563,18 +576,18 @@ sub TRAVEL_DIR {
 }
 
 
-sub DO_SOMETHING {
+sub LOCATION_SETTINGS {
     if ($MapLoc[0] == 0 && $MapLoc[1] == 0 && $initialHelpScreen == 1) {
         $initialHelpScreen = 0;
-        WHAT_DO("HELP");
+        ACTION("HELP");
     }       
     
     if ($MapLoc[0] == 0 && $MapLoc[1] == 3 && $haveMap == 0) {
         say YELLOW."\n=> ".RESET.BOLD."You found a map!".RESET;
         say YELLOW."=> ".RESET."Take time to review the ".BOLD."HELP".RESET." options. During gameplay, acquiring items will alter the possible available actions of your character.\n";
         $haveMap = 1;
-        WHAT_DO("GET");
-        WHAT_DO("HELP");
+        ACTION("GET");
+        ACTION("HELP");
     }
 
     # Once you get help from the shopkeeper, the pathing can change to allow access to the rest of the map at 3,2
@@ -646,10 +659,10 @@ sub DO_SOMETHING {
 
 sub QUEST_SYSTEM {
     if ($MapLoc[0] == 3 && $MapLoc[1] == 2) {
-        if ($quests{MOVELOGS}{STATE_A} == 0) {
+        if ($quests{MOVELOGS}{STATE_B} == 0) {
             say YELLOW."=> ".RESET."The burly guy in front of you says, \"There's a bunch of giant logs";
             say "   blocking the path. You'll have to come back later\"";
-            $quests{MOVELOGS}{STATE_B} = 1;
+            $quests{MOVELOGS}{STATE_A} = 1;
             say YELLOW."\n=> ".RESET."Your journal has been updated!";
         }
         elsif ($quests{MOVELOGS}{STATE_A} == 1) {
@@ -660,11 +673,12 @@ sub QUEST_SYSTEM {
             UPDATE_MAP_DATA();
             $quests{MOVELOGS}{STATE_A} = 2;
             $quests{MOVELOGS}{STATE_B} = 2;
-            say YELLOW."\n=> ".RESET."Your journal has been updated!";
+            say YELLOW."\n=> ".RESET."Your ".BOLD."journal".RESET." has been updated!";
+
         }
     }
     if ($MapLoc[0] == 2 && $MapLoc[1] == 3) {
-        if ($quests{MOVELOGS}{STATE_A} == 0 && $quests{MOVELOGS}{STATE_B} == 1) {
+        if ($quests{MOVELOGS}{STATE_A} == 1 && $quests{MOVELOGS}{STATE_B} == 0) {
             say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." looks at you and says, \"I've heard that you need some";
             say "   help to clear out the path. For ".YELLOW."75".RESET."gp I can have my guys help";
             say "   you out.\"";
@@ -673,9 +687,9 @@ sub QUEST_SYSTEM {
             chomp ($input);
             if ($input =~ m/Y{1}E*S*/) {
                 if ($playerChar{GOLD} >= 75 ) { 
-                    $quests{MOVELOGS}{STATE_A} = 1;
+                    $quests{MOVELOGS}{STATE_B} = 1;
                     say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." says \"Thanks, let me know if you need anything else.\"";
-                    say YELLOW."\n=> ".RESET."Your journal has been updated!";
+                    say YELLOW."\n=> ".RESET."Your ".BOLD."journal".RESET." has been updated!";
                     $playerChar{GOLD} -= 75;
                 } else {
                     say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." says \"You don't have enough money for that right now. Come back later\"";
@@ -714,19 +728,23 @@ sub STATUS {
     pop @talkToPerson;
 
     if ($playerChar{CURRENT_HP} <= 0) {
-        say "Unfortunately you have died. Fortunately you can play again.";
+        say "Fortunately you have died. Unfortunately you ".BOLD."HAVE".RESET." to play again.";
         sleep 5;
         system("clear");
         exit;
     }
+
+    say "Intro: ".$fightIntro[rand @fightIntro];
+    say "Words: ".$fightWords[rand @fightWords];
+    say "End:   ".$fightEnd[rand @fightEnd];
 }
 
 sub POSTENTERROOMCHECK {
     if ($autoMap == 1 && $haveMap == 1) {
-        WHAT_DO("MAP");
+        ACTION("MAP");
     }
     if ($autoLook == 1) {
-        WHAT_DO("LOOK");
+        ACTION("LOOK");
     }
 	say YELLOW."=> ".RESET."You just entered room: ".$MapLoc[0].",".$MapLoc[1]." via ".$MapLoc[2].",".$MapLoc[3];
 
@@ -751,7 +769,7 @@ sub PRELEAVEROOMCHECK {
     }
 }
 
-sub WHAT_DO {
+sub ACTION {
         my $input = shift;
 
         if (not defined $input) {
@@ -801,7 +819,7 @@ sub WHAT_DO {
             if ($autoMap == 0) {
                 $autoMap = 1;
                 say "AUTOMAP activated";
-                WHAT_DO("MAP");
+                ACTION("MAP");
             } else { 
                 $autoMap = 0;
                 say "AUTOMAP disabled";
@@ -833,7 +851,7 @@ sub WHAT_DO {
         }
         elsif ($input =~ m/^EQUIP$/) {
             if (@{$playerChar{INVENTORY}}) {
-                WHAT_DO("INVENTORY");
+                ACTION("INVENTORY");
             } else {
                 say RED."=> ".RESET."You have no items to equip.";
             }
@@ -880,56 +898,78 @@ sub WHAT_DO {
         elsif ($input =~ m/^H{1}U*R*T*/) {
             $playerChar{CURRENT_HP} -= 20;
         }
+        elsif ($input =~ m/^PEE ON/ || $input =~ m/^PISS ON/) {
+            say YELLOW."=> ".RESET."Drip drip yes it's true, I'm gonna pee on you";
+        }
+        elsif ($input =~ m/^DIE$/ || $input =~ m/^SUICIDE$/ || $input =~ m/^KILL YOURSELF/ || $input =~ m/^KILL MYSELF/) {
+            $playerChar{CURRENT_HP} -= $playerChar{CURRENT_HP};
+        }
         elsif ($input =~ m/^J{1}O*U*R*N*A*L*$/) {
-            say "# You check your journal #";
-            say "#------------------------#";
+            say YELLOW."=> ".RESET."You check your journal";
+            say "\n#------------------------#";
             foreach (keys %quests) {
-                if ($quests{$_}{STATE_B} == 1) {
+                if ($quests{$_}{STATE_A} == 1) {
                     say "#".WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
                     say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
                 }
-                if ($quests{$_}{STATE_A} == 1) {
+                if ($quests{$_}{STATE_B} == 1) {
                     say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
                 }
                 if ($quests{$_}{STATE_A} == 2 && $quests{$_}{STATE_B} == 2) {
                     say "#".WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
-                    say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
-                    say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
-                    say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_ }{LOG_ENTRY_A2};
+                    if ($quests{$_}{LOG_ENTRY_A1} ne '') {
+                        say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
+                    }
+                    if ($quests{$_}{LOG_ENTRY_B1} ne '') {
+                        say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
+                    }
+                    if ($quests{$_}{LOG_ENTRY_A2} ne '') {
+                        say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A2};
+                    }
+                    if ($quests{$_}{LOG_ENTRY_B2} ne '') {
+                        say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B2};
+                    }
                     say "#".WHITE."=> ".RESET."Quest: Completed";
                 }
+                print "\n";
             }
             say "#------------------------#";
         }
-        elsif ($input =~ m/^CHECK TIME$/ || $input =~ m/^TIME$/ || $input =~ m/^CLOCK$/ || $input =~ m/^CHECK CLOCK$/) {
+        elsif ($input =~ m/^CHECK TIME$/ || $input =~ m/^TIME$/ || $input =~ m/^CLOCK$/ || $input =~ m/^CHECK CLOCK$/ || $input =~ m/^CHECK THE TIME$/ || $input =~ m/^CHECK THE CLOCK/) {
             say YELLOW."=> ".RESET."You check your watch and it says ".localtime;
         }
         elsif ($input =~ m/^TALK$/ || $input =~ m/^TALK TO$/) {
             say RED."=> ".RESET."Talk to who (or what)?";
         }
-        elsif ( @talkToPerson && ($input =~ m/^TALK $talkToPerson[0]$/ || $input =~ m/^TALK TO $talkToPerson[0]$/)) {
+        elsif ( @talkToPerson && ($input =~ m/^TALK $talkToPerson[0]$/ || $input =~ m/^TALK TO $talkToPerson[0]$/ || $input =~ m/^TALK TO THE $talkToPerson[0]$/)) {
             say "You speak to $talkToPerson[0]";
             QUEST_SYSTEM();
         }
         elsif ($input =~ m/^CLEAR$/) {
             system("clear");
         } else {
-            if(rand(101) > 50) { 
-                say RED."=> ".RESET."You can't do that here. Maybe you should seek ".BOLD."HELP".RESET."?";
-            } else {
+            if(rand(101) > 75) { 
+                say RED."=> ".RESET."Maybe you should seek ".BOLD."HELP".RESET."?";
+            }
+            elsif(rand(101) > 50) {
                 say RED."=> ".RESET."You cannot perform ".BOLD.$input.RESET ." at this point in time";
+            }
+            elsif (rand(101) > 25) {
+                say RED."=> ".RESET."You can't do that here.";
+            } else {
+                say RED."=> ".RESET."Not in town";
             }
         }
 }
 
 sub MAIN {
-    GAME_INTRO();
+    #GAME_INTRO();
     system("clear");
     while(1) {
         UPDATE_MAP_DATA();
         STATUS();
-        DO_SOMETHING();
-        WHAT_DO();
+        LOCATION_SETTINGS();
+        ACTION();
     }
 }
 
