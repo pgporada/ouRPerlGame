@@ -743,17 +743,16 @@ sub COMBAT {
     $monsterChar{DEATH_XP} = int(rand(76)+10);
     $monsterChar{DEATH_GOLD} = int(rand(51)+1);
 
-    say "\nPlease use ".BOLD RED."A".RESET."ttack, ".BOLD BLUE."B".RESET."lock, or ".BOLD GREEN."M".RESET."agic along with the arrow keys during combat\n".RESET;
+    say "\nPlease use ".BOLD RED."Attack".RESET.", ".BOLD BLUE."Block".RESET.", or ".BOLD GREEN."Magic".RESET." along with the arrow keys during combat\n".RESET;
     say BRIGHT_RED."=> ".RESET."A $monsterChar{NAME} attacks you!";
     say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} yells ".ITALIC."\"".$fightIntro[rand @fightIntro]."\"".RESET;
     
-    my $char;
-    my $rng;
-    my $dmg;
+    my $char = undef;
+    my $rng = 0;
+    my $dmg = 0;
 
     while ($monsterChar{HP} >= 0) {
         say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} has $monsterChar{HP}hp";
-        say BRIGHT_RED."=> ".RESET."Words: ".$fightWords[rand @fightWords];
         print CYAN."\n=> ".RESET."Action: ";
 
         # Term::ReadKey doc http://search.cpan.org/dist/TermReadKey/ReadKey.pm
@@ -770,90 +769,73 @@ sub COMBAT {
 
         # A or a for basic attacking
         if (ord($char) == 97 || ord($char) == 65) {
-            $rng = int(rand(101));
-            if ($rng >= 75){
-                print "STAB ";
-            } elsif ($rng >= 50) {
-                print "SWING ";
-            } elsif ($rng >= 25) {
-                print "SLASH ";
-            } else {
-                print "FILET ";
+            $rng = int(rand(3) + 1);
+            switch ($rng) {
+                case 1 { print "STAB"; }
+                case 2 { print "SWING"; }
+                case 3 { print "SLASH"; }
+                else { print "FILET"; }
             }
         }
         # B or b for blocking
         elsif (ord($char) == 98 || ord($char) == 66) {
-            $rng = int(rand(101));
-            if ($rng >= 66){
-                print "GUARD ";
-            } elsif ($rng >= 33) {
-                print "BLOCK ";
-            } else {
-                print "DEFEND ";
+            $rng = int(rand(3)+1);
+            switch ($rng) {
+                case 1 { print "GUARD"; }
+                case 2 { print "BLOCK"; }
+                case 3 { print "DEFEND"; }
             }
         }
         # M or m for magic
         elsif (ord($char) == 109 || ord($char) == 77) {
-            $rng = int(rand(101));
-            if ($rng >= 80) {
-                print "POOF ";
-            } elsif ($rng >= 60) {
-                print "POW ";
-            } elsif ($rng >= 40) {
-                print "SUPRISE ";
-            } elsif ($rng >= 20) {
-                print "ABRA KADABRA ";
-            } else {
-                print "SHAZZZAAM ";
+            $rng = int(rand(4) + 1);
+            switch ($rng) {
+                case 1 { print "POOF"; }
+                case 2 { print "POW"; }
+                case 3 { print "SUPRISE"; } 
+                case 4 { print "ABRA KADABRA"; }
+                else { print "SHAZZZAAM"; }
             }
         }
         # Get the arrow key directions
-        print CYAN."=> ".RESET."Direction: ";
+        print CYAN." => ".RESET."Direction: ";
         $char = ReadKey(0);
         if (ord($char) == 27) { 
             $char = ReadKey(0);
             if (ord($char) == 91) { 
                 $char = ReadKey(0);
                 if (ord($char) == 67) { 
-                    say "RIGHT ";
+                    say "RIGHT";
                     $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
                     $monsterChar{HP} -= $dmg;
                 } elsif (ord($char) == 65) { 
-                    say "UP ";
+                    say "UP";
                     $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
                     $monsterChar{HP} -= $dmg;
                 } elsif (ord($char) == 68) {
-                    say "LEFT ";
+                    say "LEFT";
                     $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
                     $monsterChar{HP} -= $dmg;
                 } elsif (ord($char) == 66) { 
-                    say "DOWN ";
+                    say "DOWN";
                     $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
                     $monsterChar{HP} -= $dmg;
                 } else {
+                    $dmg = 0;
                     say "I have no clue what you pressed";
                 }
             }
         } 
 
+        say BRIGHT_RED."=> ".RESET."*".$fightWords[rand @fightWords]."*";
         say YELLOW."=> ".RESET."You did $dmg damage to $monsterChar{NAME}";
 
 
-
-
         ReadMode('normal');
+        STATUS();
     }
-
-    if ($monsterChar{HP} <= 0) {
-        say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} utters a final remark, ".ITALIC."\"".$fightEnd[rand @fightEnd]."\"".RESET;
-        print "\n";
-        print YELLOW."=> ".RESET."You loot ".YELLOW.$monsterChar{DEATH_GOLD}.RESET."gp from the ".$monsterChar{NAME}."'s corpse.";
-        $playerChar{GOLD} += $monsterChar{DEATH_GOLD};
-        say YELLOW."=> ".RESET."You gain ".GREEN.$monsterChar{DEATH_XP}.RESET."xp.";
-        $playerChar{CURRENT_XP} += $monsterChar{DEATH_XP};
-        print "\n";
-    }
-
+    # If monster is dead, we let the STATUS function know so that we can collect loot and XP and stuff.
+    STATUS(1);
 }
 
 
@@ -863,39 +845,59 @@ sub STATUS {
    # say "X Y X Y ?";
    # say $_." " foreach ( @MapLoc );
    # print "\n";
+   my $monster_activity = shift;
+   if (not defined $monster_activity) {
+        $monster_activity = 0;
+   }
 
     # Check if player is dead
     if ($playerChar{CURRENT_HP} <= 0) {
-        my $rng = int(rand(9) + 1);
+        my $rng = int(rand(12) + 1);
         print BRIGHT_RED."=> ".RESET."Unfortunately you have died. ";
-        ENTER_PROMPT();
         switch ($rng) {
-            case 1 { say "Fortunately you ".BOLD."HAVE".RESET." to play again. ;)"; sleep 5; system("clear"); exec("$abs_path") or say STDERR "Couldn't exec $abs_path: $!"; } 
+            case 1 { say "Fortunately, you ".BOLD."HAVE".RESET." to play again. ;)"; sleep 5; system("clear"); exec("$abs_path") or say STDERR "Couldn't exec $abs_path: $!"; } 
             case 2 { say "Your life is over and evil wins again."; }
-            case 3 { say "Fortunately no one will miss you"; } 
-            case 4 { say "Ok."; }
-            case 5 { say "Alright."; }
+            case 3 { say "Fortunately, no one will miss you"; } 
+            case 4 { say "Maybe if I implement saving you could reload. Too bad about that though."; }
+            case 5 { say "Fortunately, Soylent Green is the next big thing!"; }
             case 6 { say "Good."; }
             case 7 { say "Your family now hates you."; }
-            case 8 { say "You let me down kid."; }
-            case 9 { say "Another one bites the dust."; }
+            case 8 { say "Again."; }
+            case 9 { say "And another one bites the dust."; }
             case 10 { say "May you have more luck in death than life."; }
+            case 11 { say "Rest in pieces, $playerChar{NAME}."; }
+            case 12 { say "Here's a picture of your corpse: ".RED."X".RESET.". Not pretty."; }
         }
-        sleep 30;
+        sleep 5;
         system("clear");
         exit;
+    }
+
+    if ($monster_activity == 1 && $monsterChar{HP} <= 0) {
+        say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} utters a final remark, ".ITALIC."\"".$fightEnd[rand @fightEnd]."\"".RESET;
+        print "\n";
+        say YELLOW."=> ".RESET."You loot ".YELLOW.$monsterChar{DEATH_GOLD}.RESET."gp from the ".$monsterChar{NAME}."'s corpse.";
+        $playerChar{GOLD} += $monsterChar{DEATH_GOLD};
+        say YELLOW."=> ".RESET."You gain ".GREEN.$monsterChar{DEATH_XP}.RESET."xp.";
+        $playerChar{CURRENT_XP} += $monsterChar{DEATH_XP};
+        print "\n";
     }
 
     # Check if player can level up. If so, perform level up things and stuff.
     if ($playerChar{CURRENT_XP} >= $playerChar{NEXT_LVL_XP}) {
         $playerChar{CURRENT_XP} = $playerChar{CURRENT_XP} - $playerChar{NEXT_LVL_XP};
         $playerChar{LVL} += 1;
-        $playerChar{DMG_MIN} += int(rand(6)+1);
-        $playerChar{DMG_MAX} += int(rand(11)+1);
+        my $dmg_min_increase = int(rand(6)+1);
+        $playerChar{DMG_MIN} += $dmg_min_increase;
+        my $dmg_max_increase = int(rand(10)+3);
+        $playerChar{DMG_MAX} += $dmg_max_increase;
         $playerChar{NEXT_LVL_XP} += 100;
-        $playerChar{MAX_HP} += int(rand(21)+5);
+        my $hp_increase = int(rand(21)+5);
+        $playerChar{MAX_HP} += $hp_increase;
         $playerChar{CURRENT_HP} = $playerChar{MAX_HP};
         say GREEN."=> ".RESET.BOLD."You've gained a level!".RESET;
+        say GREEN."=> ".RESET."You've gained $hp_increase hp.";
+        say GREEN."=> ".RESET."You now do an extra $dmg_min_increase\-$dmg_max_increase damage on averge.";
     }
 }
 
@@ -914,10 +916,18 @@ sub POSTENTERROOMCHECK {
         COMBAT();
     } 
     elsif (@{$MapAoA[$MapLoc[4]]}[8] == 1) {
-        if (rand(101) > 75) { say YELLOW."=> ".RESET."You feel as if you're being watched."; }
-        elsif (rand(101) > 75) { say YELLOW."=> ".RESET."You feel unsettled."; }
-        elsif (rand(101) > 75) { say YELLOW."=> ".RESET."You see a shadow dart across the distance."; }
-        else { say YELLOW."=> ".RESET."No matter how much you try to relax, the knot in your stomach persists."; }
+        my $rng = int(rand(7)+1);
+        print YELLOW."=> ".RESET;
+        switch ($rng) {
+            case 1 { say "You feel as if you're being watched."; }
+            case 2 { say "You feel unsettled."; }
+            case 3 { say "You see a shadow dart across the distance."; }
+            case 4 { say "You feel the weight of anothers eyes on you."; }
+            case 5 { say "You feel paranoid."; }
+            case 6 { say ITALIC."\"You feel like.. somebodies watchin' you!\"".RESET; }
+            case 7 { say "The hair on the back of your neck stands up."; }
+            else { say "You can't relax in here."; }
+        }
     }
 }
 
@@ -934,7 +944,6 @@ sub PRELEAVEROOMCHECK {
 
 sub ACTION {
         my $input = shift;
-
         if (not defined $input) {
             print "\nWhat would you like to do?\n".MAGENTA."%> ".RESET;
             $input = uc(<STDIN>);
@@ -965,7 +974,7 @@ sub ACTION {
             say GREEN."# ".RESET."If you ".BOLD."LOOK".RESET.", you can travel in one of the returned directions.";
             say GREEN."# ".RESET."Typing ".BOLD."AUTOLOOK".RESET." will enable/disable automatically checking directions when you enter a room. ".GREEN."#".RESET;
             if ($haveMap == 1) {
-                say GREEN."# ".RESET."Typing ".BOLD."AUTOMAP".RESET." will enable/disable automatically viewing the map when you enter a room.  ".GREEN."#".RESET;
+                say GREEN."# ".RESET."Typing ".BOLD."AUTOMAP".RESET." will enable/disable automatically viewing the map when you enter a room.      ".GREEN."#".RESET;
             }
             say GREEN."# ".RESET."Typing ".BOLD."HELP".RESET." or ".BOLD."?".RESET." will show this menu again.";
             say GREEN."#----------------------------------------------------------------------------------------------#".RESET;
