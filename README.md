@@ -3,6 +3,8 @@ ouRPerlGame
 <br>
 <br>
 The Perl game all of my friends have been helping me create by giving their ideas.
+<br> 
+Currently it's a gigantic fucking alpha. If you would like to help, just let me know.
 <br>
 <br>
 Steps to use
@@ -13,11 +15,13 @@ Steps to use
 <br>
 2a) Cpanminus - https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm
 <br>
-2aa) <b>curl -L http://cpanmin.us | perl - App::cpanminus</b>
+2b) To install Cpanminus: <b>curl -L http://cpanmin.us | perl - App::cpanminus</b>
 <br>
-2b) <b>sudo cpanm Term::ANSIColor Term::ExtendedColor Curses::UI Data::Dumper</b>
+2c) To install the required modules: <b>sudo cpanm Term::ANSIColor Term::ExtendedColor Term::ReadKey Curses::UI</b>
 <br>
 3) To run the game, first grant the execute permission:  <b>chmod +x map.pl</b>
 <br>
-4) Then, run the game: <b>./map.pl<b>
+4) Then, run the game: <b>./map.pl</b>
 <br>
+<br>
+Thanks for checking this out!

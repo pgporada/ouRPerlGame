@@ -5,14 +5,14 @@ use strict;
 # http://stackoverflow.com/questions/627661/how-can-i-output-utf-8-from-perl/627975#627975
 use open qw/:std :utf8/;
 use utf8;
+use feature qw(say);
 
 use locale;
 use Term::ANSIColor qw(:constants colored);
 use Term::ExtendedColor qw(:all);
-use Curses::UI;
-use Data::Dumper;
-use feature qw(say);
+use Term::ReadKey;
 
+use Curses::UI;
 my $user_color_choice = "sandybrown";
 my $undiscovered = ' ';
 my $revealed = fg('blue7','-');
@@ -73,6 +73,19 @@ my %charClass = (
     Overling  => { PORTRAIT => 'Ω', DESC => 'Overlings like to stay in shadows, but prefer to go over things.'},
     Wizard    => { PORTRAIT => 'ᐂ', DESC => 'Mutha fuckin wizards never die.'}
     );
+
+my @monsterName = ("Skeleton","Impatient Waiter","Crow","IRS Guy","ICP Clown","Juggalo","Roaming bovine");
+
+my %monsterChar = (
+        NAME => '',
+        HP => '',
+        DMG_MIN => '',
+        DMG_MAX => '',
+        DEATH_XP => '',
+        DEATH_GOLD => '',
+    );
+
+
 
 # Autovivification
 my %items = (
@@ -141,7 +154,7 @@ my %quests = (
         },
     );
 
-my @fightIntro = ("C'MERE YOU!","WHY I OUGHTTA","I'M GONNA PASTEURIZE YOU!","I'M GONNA MURDA YA!","I'MA WARIO I'MA GONNA WEEN","I'M GUNNA MOYDA YA!","I'M GONNA FOLD YOUR CLOTHES WITH YOU IN 'EM","YOU WANNA SEE TOUGH? I'LL SHOW YOU TOUGH","I NEVER LOSE!","LEMME AT 'EM");
+my @fightIntro = ("I EAT PIECES OF SHIT LIKE YOU FOR BREAKFAST!","C'MERE YOU!","WHY I OUGHTTA","I'M GONNA PASTEURIZE YOU!","I'M GONNA MURDA YA!","I'MA WARIO I'MA GONNA WEEN","I'M GUNNA MOYDA YA!","I'M GONNA FOLD YOUR CLOTHES WITH YOU IN 'EM","YOU WANNA SEE TOUGH? I'LL SHOW YOU TOUGH","I NEVER LOSE!","LEMME AT 'EM");
 my @fightWords = ("POW!","ZAP!","BLAMMO!","THUD!!","CRACK!", "BIFF!", "WHOOP","OVER 9000!!!", "BOOP", "BOP", "BLAM SLAM", "TOASTIEEE", "SHAZZAM!", "BANG!", "SPLAT!", "SHWOMP!", "BOING!", "GLAVEN!", "JINKIES!", "YOWZA!", "UHH! I FEEL GOOD!","BONK!","CLONK!","HHHWHACK!","HHHWWAAMM!","THUNK!!","KRUNCH!","MEOW!","SPREZCEHN ZE POW!","HUUU!","KABLAM!");
 my @fightEnd = ("BURY ME WITH MY...MONEY","X_X","X_x","I'M GONNA TELL MY MOM!","HEY, YOU'RE MEAN","RUDE","*trumpet* WAAA WAAA WAAAAAAA","FUCK!", "SHITCOCKS!");
 push@{$playerChar{INVENTORY}},'Sword';
@@ -362,17 +375,17 @@ my @MapAoA = ( [0,0,1,0,0,1,0,0,0,0], #[0] array.
 		       [1,2,0,0,0,1,1,0,1,0], #[11]
 		       [2,2,0,0,0,0,1,1,1,0], #[12]
 		       [3,2,0,0,0,1,0,1,0,0], #[13]
-		       [4,2,0,0,0,1,0,0,1,0], #[14]
+		       [4,2,0,0,0,1,0,0,0,0], #[14]
 		       [0,3,0,0,1,1,0,0,1,0], #[15]
 		       [1,3,0,0,1,1,0,0,1,0], #[16]
 		       [2,3,3,0,0,1,0,0,0,0], #[17]
 		       [3,3,0,0,1,1,0,0,1,0], #[18]
-		       [4,3,0,0,0,1,0,0,1,0], #[19]
+		       [4,3,0,0,0,1,0,0,0,0], #[19]
 		       [0,4,0,0,1,0,1,0,1,0], #[20]
 		       [1,4,0,0,1,0,0,1,1,0], #[21]
 		       [2,4,0,0,1,0,1,0,1,0], #[22]
 		       [3,4,0,0,1,0,0,1,1,0], #[23]
-		       [4,4,0,0,0,1,0,0,1,0]  #[24]
+		       [4,4,0,0,0,1,0,0,0,0]  #[24]
     );
 
 my %cheats = (
@@ -719,24 +732,151 @@ sub QUEST_SYSTEM {
     }
 }
 
+sub COMBAT {
+    $monsterChar{NAME} = $monsterName[rand @monsterName];
+    $monsterChar{HP} = int(rand(200) + 75);
+    $monsterChar{DMG_MIN} = int(rand(2));
+    $monsterChar{DMG_MAX} = int(rand(30));
+    $monsterChar{DEATH_XP} = int(rand(76)+10);
+    $monsterChar{DEATH_GOLD} = int(rand(51)+1);
+
+    say "\nPlease use ".BOLD RED."A".RESET."ttack, ".BOLD BLUE."B".RESET."lock, or ".BOLD GREEN."M".RESET."agic along with the arrow keys during combat\n".RESET;
+    say BRIGHT_RED."=> ".RESET."A $monsterChar{NAME} attacks you!";
+    say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} yells ".ITALIC."\"".$fightIntro[rand @fightIntro]."\"".RESET;
+    
+    my $char;
+    my $rng;
+    my $dmg;
+
+    while ($monsterChar{HP} >= 0) {
+        say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} has $monsterChar{HP}hp";
+        say BRIGHT_RED."=> ".RESET."Words: ".$fightWords[rand @fightWords];
+        print CYAN."\n=> ".RESET."Action: ";
+
+        # Term::ReadKey doc http://search.cpan.org/dist/TermReadKey/ReadKey.pm
+        ReadMode('cbreak');
+        $char = ReadKey(0);
+
+        # Try again if there is no character inputted
+        if (not defined $char) {
+            say "No character defined by that keypress\n";
+            last;
+        }
+
+        #say ord($char);
+
+        # A or a for basic attacking
+        if (ord($char) == 97 || ord($char) == 65) {
+            $rng = int(rand(101));
+            if ($rng >= 75){
+                print "STAB ";
+            } elsif ($rng >= 50) {
+                print "SWING ";
+            } elsif ($rng >= 25) {
+                print "SLASH ";
+            } else {
+                print "FILET ";
+            }
+        }
+        # B or b for blocking
+        elsif (ord($char) == 98 || ord($char) == 66) {
+            $rng = int(rand(101));
+            if ($rng >= 66){
+                print "GUARD ";
+            } elsif ($rng >= 33) {
+                print "BLOCK ";
+            } else {
+                print "DEFEND ";
+            }
+        }
+        # M or m for magic
+        elsif (ord($char) == 109 || ord($char) == 77) {
+            $rng = int(rand(101));
+            if ($rng >= 80) {
+                print "POOF ";
+            } elsif ($rng >= 60) {
+                print "POW ";
+            } elsif ($rng >= 40) {
+                print "SUPRISE ";
+            } elsif ($rng >= 20) {
+                print "ABRA KADABRA ";
+            } else {
+                print "SHAZZZAAM ";
+            }
+        }
+        # Get the arrow key directions
+        print CYAN."=> ".RESET."Direction: ";
+        $char = ReadKey(0);
+        if (ord($char) == 27) { 
+            $char = ReadKey(0);
+            if (ord($char) == 91) { 
+                $char = ReadKey(0);
+                if (ord($char) == 67) { 
+                    say "RIGHT ";
+                    $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
+                    $monsterChar{HP} -= $dmg;
+                } elsif (ord($char) == 65) { 
+                    say "UP ";
+                    $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
+                    $monsterChar{HP} -= $dmg;
+                } elsif (ord($char) == 68) {
+                    say "LEFT ";
+                    $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
+                    $monsterChar{HP} -= $dmg;
+                } elsif (ord($char) == 66) { 
+                    say "DOWN ";
+                    $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
+                    $monsterChar{HP} -= $dmg;
+                } else {
+                    say "I have no clue what you pressed";
+                }
+            }
+        } 
+
+        say YELLOW."=> ".RESET."You did $dmg damage to $monsterChar{NAME}";
+
+
+
+
+        ReadMode('normal');
+    }
+
+    if ($monsterChar{HP} <= 0) {
+        say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} utters a final remark, ".ITALIC."\"".$fightEnd[rand @fightEnd]."\"".RESET;
+        print "\n";
+        print YELLOW."=> ".RESET."You loot ".YELLOW.$monsterChar{DEATH_GOLD}.RESET."gp from the ".$monsterChar{NAME}."'s corpse.";
+        $playerChar{GOLD} += $monsterChar{DEATH_GOLD};
+        say YELLOW."=> ".RESET."You gain ".GREEN.$monsterChar{DEATH_XP}.RESET."xp.";
+        $playerChar{CURRENT_XP} += $monsterChar{DEATH_XP};
+        print "\n";
+    }
+
+}
+
+
 sub STATUS {
    # say @$_ foreach ( @MapAoA );
    # say "EW: ".$count_EW." NS: ".$count_NS;
    # say "X Y X Y ?";
    # say $_." " foreach ( @MapLoc );
    # print "\n";
-    pop @talkToPerson;
-
     if ($playerChar{CURRENT_HP} <= 0) {
-        say "Fortunately you have died. Unfortunately you ".BOLD."HAVE".RESET." to play again.";
+        say BRIGHT_RED."=> ".RESET."Unfortunately you have died. Fortunately you ".BOLD."HAVE".RESET." to play again. ;)";
         sleep 5;
         system("clear");
         exit;
     }
 
-    say "Intro: ".$fightIntro[rand @fightIntro];
-    say "Words: ".$fightWords[rand @fightWords];
-    say "End:   ".$fightEnd[rand @fightEnd];
+    if ($playerChar{CURRENT_XP} >= $playerChar{NEXT_LVL_XP}) {
+        $playerChar{CURRENT_XP} = $playerChar{CURRENT_XP} - $playerChar{NEXT_LVL_XP};
+        $playerChar{LVL} += 1;
+        $playerChar{DMG_MIN} += int(rand(6)+1);
+        $playerChar{DMG_MAX} += int(rand(11)+1);
+        $playerChar{NEXT_LVL_XP} += 100;
+        $playerChar{MAX_HP} += int(rand(21)+5);
+        $playerChar{CURRENT_HP} = $playerChar{MAX_HP};
+        say GREEN."=> ".RESET.BOLD."You've gained a level!".RESET;
+    }
 }
 
 sub POSTENTERROOMCHECK {
@@ -750,7 +890,8 @@ sub POSTENTERROOMCHECK {
 
     # Random monster check
     if (@{$MapAoA[$MapLoc[4]]}[8] == 1 && rand(101) > 50) {
-        say "A wild monster appears!"
+        say YELLOW."=> ".RESET."A wild monster appears!";
+        COMBAT();
     } 
     elsif (@{$MapAoA[$MapLoc[4]]}[8] == 1) {
         if (rand(101) > 75) { say YELLOW."=> ".RESET."You feel as if you're being watched."; }
@@ -761,11 +902,13 @@ sub POSTENTERROOMCHECK {
 }
 
 sub PRELEAVEROOMCHECK {
+    pop @talkToPerson;
 	say YELLOW."=> ".RESET."You attempt to leave room: ".$MapLoc[2].",".$MapLoc[3];
 
     # Random monster check
     if (@{$MapAoA[$MapLoc[4]]}[8] == 1 && rand(101) > 33) {
-        say YELLOW."=> ".RESET."As you approach the exit, a monster appears out of nowhere and lunges at you!"
+        say YELLOW."=> ".RESET."As you approach the exit, a monster appears out of nowhere and lunges at you!";
+        COMBAT();
     }
 }
 
@@ -787,7 +930,7 @@ sub ACTION {
         }
         # Help
         elsif ($input =~ m/^HELP$/ || $input =~ m/^\?{1}$/) {
-            say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."HELP".RESET;
+            say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."HELP".RESET.GREEN." #----------------------------------------------------------------------------------# ".RESET;
             print GREEN."# ".RESET."You can ";
             print BOLD."LOOK".RESET;
             print ", ".BOLD."GET".RESET;
@@ -795,16 +938,17 @@ sub ACTION {
                 print ", ".BOLD."MAP".RESET; 
             }
             print ", ".BOLD."CLEAR".RESET;
+            print ", ".BOLD."TALK".RESET." [".BOLD."TO".RESET."] <PERSON>";
             print ", ".BOLD."INV".RESET."[".BOLD."ENTORY".RESET."] ";
-            say "and ".BOLD."READ".RESET; 
-            say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."TIPS".RESET;
+            say "and ".BOLD."C".RESET."[".BOLD."HARACTER".RESET."]"; 
+            say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."TIPS".RESET.GREEN." #----------------------------------------------------------------------------------# ".RESET;
             say GREEN."# ".RESET."If you ".BOLD."LOOK".RESET.", you can travel in one of the returned directions.";
-            say GREEN."# ".RESET."Typing ".BOLD."AUTOLOOK".RESET." will enable/disable automatically checking directions when you enter a room.";
+            say GREEN."# ".RESET."Typing ".BOLD."AUTOLOOK".RESET." will enable/disable automatically checking directions when you enter a room. ".GREEN."#".RESET;
             if ($haveMap == 1) {
-                say GREEN."# ".RESET."Typing ".BOLD."AUTOMAP".RESET." will enable/disable automatically viewing the map when you enter a room.";
+                say GREEN."# ".RESET."Typing ".BOLD."AUTOMAP".RESET." will enable/disable automatically viewing the map when you enter a room.  ".GREEN."#".RESET;
             }
             say GREEN."# ".RESET."Typing ".BOLD."HELP".RESET." or ".BOLD."?".RESET." will show this menu again.";
-            say GREEN."#----#".RESET;
+            say GREEN."#----------------------------------------------------------------------------------------------#".RESET;
         }
         elsif ($input =~ m/^AUTOLOOK$/) {
             if ($autoLook == 0) { 
@@ -963,7 +1107,7 @@ sub ACTION {
 }
 
 sub MAIN {
-    #GAME_INTRO();
+    GAME_INTRO();
     system("clear");
     while(1) {
         UPDATE_MAP_DATA();
