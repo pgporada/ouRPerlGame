@@ -21,9 +21,9 @@ Steps to use
 <br>
 <b>sudo cpanm Term::ANSIColor Term::ExtendedColor Term::ReadKey Curses::UI</b>
 <br>
-3) To run the game, first grant the execute permission:  <b>chmod +x map.pl</b>
+3) To run the game, first grant the execute permission:  <b>chmod +x ouRPG.pl</b>
 <br>
-4) Then, run the game: <b>./map.pl</b>
+4) Then, run the game: <b>./ouRPG.pl</b>
 <br>
 <br>
 Thanks for checking this out!
