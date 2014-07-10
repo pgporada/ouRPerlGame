@@ -17,7 +17,9 @@ Steps to use
 <br>
 2b) To install Cpanminus: <b>curl -L http://cpanmin.us | perl - App::cpanminus</b>
 <br>
-2c) To install the required modules: <b>sudo cpanm Term::ANSIColor Term::ExtendedColor Term::ReadKey Curses::UI</b>
+2c) To install the required modules: 
+<br>
+<b>sudo cpanm Term::ANSIColor Term::ExtendedColor Term::ReadKey Curses::UI</b>
 <br>
 3) To run the game, first grant the execute permission:  <b>chmod +x map.pl</b>
 <br>
