@@ -6,6 +6,9 @@ use strict;
 use open qw/:std :utf8/;
 use utf8;
 use feature qw(say);
+use Switch;
+use Cwd;
+my $abs_path = Cwd::abs_path($0);
 
 use locale;
 use Term::ANSIColor qw(:constants colored);
@@ -69,8 +72,8 @@ my %charClass = (
     Elf       => { PORTRAIT => '§', DESC => 'Your skinny pointy eared Joe. They\'re typically faster than most'},
     Orc       => { PORTRAIT => '&', DESC => 'Your typical ugly looking Joe. Orcs are tough and strong.'},
     Giant     => { PORTRAIT => 'Ö', DESC => 'Giants can reach the top of the refridgerator that old adventurers can no longer get to.'},
-    Underling => { PORTRAIT => '℧', DESC => 'Underlings slink by in the shadows and like to stay out of site. They like to go under things.'},
-    Overling  => { PORTRAIT => 'Ω', DESC => 'Overlings like to stay in shadows, but prefer to go over things.'},
+    Underling => { PORTRAIT => '_', DESC => 'Underlings slink by in the shadows and like to stay out of site. They like to go under things.'},
+    Overling  => { PORTRAIT => '^', DESC => 'Overlings like to stay in shadows, but prefer to go over things.'},
     Wizard    => { PORTRAIT => 'ᐂ', DESC => 'Mutha fuckin wizards never die.'}
     );
 
@@ -860,13 +863,30 @@ sub STATUS {
    # say "X Y X Y ?";
    # say $_." " foreach ( @MapLoc );
    # print "\n";
+
+    # Check if player is dead
     if ($playerChar{CURRENT_HP} <= 0) {
-        say BRIGHT_RED."=> ".RESET."Unfortunately you have died. Fortunately you ".BOLD."HAVE".RESET." to play again. ;)";
-        sleep 5;
+        my $rng = int(rand(9) + 1);
+        print BRIGHT_RED."=> ".RESET."Unfortunately you have died. ";
+        ENTER_PROMPT();
+        switch ($rng) {
+            case 1 { say "Fortunately you ".BOLD."HAVE".RESET." to play again. ;)"; sleep 5; system("clear"); exec("$abs_path") or say STDERR "Couldn't exec $abs_path: $!"; } 
+            case 2 { say "Your life is over and evil wins again."; }
+            case 3 { say "Fortunately no one will miss you"; } 
+            case 4 { say "Ok."; }
+            case 5 { say "Alright."; }
+            case 6 { say "Good."; }
+            case 7 { say "Your family now hates you."; }
+            case 8 { say "You let me down kid."; }
+            case 9 { say "Another one bites the dust."; }
+            case 10 { say "May you have more luck in death than life."; }
+        }
+        sleep 30;
         system("clear");
         exit;
     }
 
+    # Check if player can level up. If so, perform level up things and stuff.
     if ($playerChar{CURRENT_XP} >= $playerChar{NEXT_LVL_XP}) {
         $playerChar{CURRENT_XP} = $playerChar{CURRENT_XP} - $playerChar{NEXT_LVL_XP};
         $playerChar{LVL} += 1;
@@ -1107,7 +1127,7 @@ sub ACTION {
 }
 
 sub MAIN {
-    GAME_INTRO();
+    #GAME_INTRO();
     system("clear");
     while(1) {
         UPDATE_MAP_DATA();
