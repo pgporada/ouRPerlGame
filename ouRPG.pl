@@ -15,7 +15,6 @@ use Term::ANSIColor qw(:constants colored);
 use Term::ExtendedColor qw(:all);
 use Term::ReadKey;
 
-use Curses::UI;
 my $user_color_choice = "sandybrown";
 my $undiscovered = ' ';
 my $revealed = fg('blue7','-');
@@ -32,9 +31,9 @@ my $initialHelpScreen = 1;
 my $haveMap = 0;
 my $autoLook = 1;
 my $autoMap = 0;
+my $chest = 0;
 my @talkToPerson;
-my $cui = new Curses::UI ( -clear_on_exit => 1 ); 
-$cui->leave_curses;
+
 my $ascii_explosion = << "EOL";
                              \\         .  ./
                            \\      .:";'.:.."   /
@@ -45,19 +44,338 @@ my $ascii_explosion = << "EOL";
  |  T                         -\\  \\     /  /-
 / \\[_]..........................\\  \\   /  /
 EOL
+my $irs_guy_pic = << "EOL";
+                      ,,,
+                        i i'
+                        \\~;\\
+                         \\; \\
+                          \\ ;\\    ====
+                           \\ ;\\  ==== \\
+                      __,--';;;\\-' (  0
+                __,--';;; ;;; ;;\\      >
+         __,--'\\\\ ;;; ;;; ;;; ;;;\\--__<
+  _ _,--' __,--'\\\\  ;;; __,~~' \\ ;\\
+ (_)|_,--' __,--'\\\\;,~~'        \\ ;\\
+ |(_)|_,--'       ~~             \\; \\
+ || |                             \\ ;\\
+  |_/                              !~!,
+                               .---'''---.
+                               |   WWE   |
+                               |   IRS   |
+                               |   GUY   |
+                               `---------'
+EOL
+my $struttin_guy_pic = << "EOL";
+                 /
+                /               .'
+               /              .'
+              /   ______.   .'
+             /   / __/_//  '
+            /   / /  c c
+           /    \\ G    >                    _.-'
+          /      \\/.  -                 _.-'
+         /     .---\\  / --.         _.-'
+        /     /     \\(     \\    _.-'
+       /     /  \\    \\  (.  )  '
+      /     /   /\\       \\ /
+     /      \\  |  \\       \\               __..--''
+    /   .'   \\_\\   )     )\\\\      __..--''
+   /  .'      ) \\  |    /   \\  -''
+  / .'   _   '///` (   /\\    \\
+ /.' _.-'  __     /    ) )    )
+ '.-'..--''      /   ,' /    /
+  .__---------- /__./  /    / --------------------
+     ``--..  __//  /   )   /
+            /    _J)   /)`-\\
+            `-__/-'  ` \\\\  |(
+                        `\\   \\  -..__
+                          `--'       ``--..__
+                                             ``--
+EOL
+my $grim_reaper_statue_pic = << "EOL";
+  ____,
+ /.---|
+ `    |     ___
+     (=\\.  /-. \\
+      |\\/\\_|"|  |
+      |_\\ |;-|  ;
+      | / \\| |_/ \\
+      | )/\\/      \\
+      | ( '|  \\   |
+      |    \\_ /   \\
+      |    /  \\_.--\\
+      \\    |    (|\\`
+       |   |     \\
+       |   |      '.
+       |  /         \\
+       \\  \\.__.__.-._)
+EOL
+my $dirty_french_guy_pic = << "EOL";
+                     ____...
+            .-"--"""".__    `.
+           |            `    |
+ (         `._....------.._.:
+  )         .()''        ``().
+ '          () .=='  `===  `-.
+  . )       (   <o>  <o>    g)
+   )         )     /        J
+  (          |.   /      . (
+  \$\$         (.  (_'.   , )|`
+  ||         |\\`-....--'/  ' \\
+ /||.         \\\\ | | | /  /   \\.
+//||(\\         \`-===-'  '     \\o.
+.//7' |)         `. --   / (     OObaaaad888b.
+(<<. / |     .a888b`.__.'d\\     OO888888888888a.
+\\  Y' |    .8888888aaaa88POOOOOO888888888888888.
+ \\  \\ |   .888888888888888888888888888888888888b
+  |   |  .d88888P88888888888888888888888b8888888.
+  b.--d .d88888P8888888888888888a:f888888|888888b
+  88888b 888888|8888888888888888888888888\\8888888
+EOL
+my $birds_shitting_on_a_car_pic = << "EOL";
+   `-.                      .
+     \\`.            .       ``.
+      \\\\`.         .'`.      `.`-.    ///
+     _.`.\\`._ _..-'.'.'       `.  `--'_'_.
+     =_`   ` "--..'.'         .-'   ._.-'
+        `--.___.:; ;        , ,  _.-'
+                 `v'        v  -'
+    ----------..
+     .     .-'  `.
+    ';` .-'       `.
+-------.-'      `..   `._
+     \\`-.     '`    / .''''''\
+      \\  `.        @.'      .'|
+       \\.  `._ _..-'      .'  /|
+         `.             .'  /L/
+           `-.______.--'  /O/
+                       |/L/
+            _.-._      |/
+        ---/.-"-.\\----'
+           \\`._.'/\\/
+             """
+EOL
+my $crows_pic = << "EOL";
+                     __,---,
+       .---.        /__|o\\  )       .-"-.      .----.""".
+      /   6_6        `-\\ / /       / 4 4 \\    /____/ (0 )\
+      \\_  (__\\         ,) (,       \\_ v _/      `--\\_    /
+      //   \\\\         //   \\\\      //   \\\\         //   \\\\
+     ((     ))       {(     )}    ((     ))       {{     }}
+=======""===""=========""===""======""===""=========""===""=======
+        |||            |||||         |||             |||
+         |              |||           |              '|'
+EOL
+my $roaming_bovine_pic = << "EOL";
+    ___,,,___ _..............._
+    '-/~'~\\-'` :::::'   .::    \
+      |a a |   ':::'     `::   || 
+      |   /::.  :::.  .:::.  ::||
+      (oo/::'  .::::..::::::.  /|
+       `` '._   /:::'''::::' <`\\/
+             | /`--....-'`Y   \\))
+             |||         //'. |((
+             |||        //   ||
+             //(        `    /(
+             ```             ``
+EOL
+my $juggalette_pic = << "EOL";
+           __.------._                      
+          .' -|  -   . `.                   
+         / '.' `-. `     \\                  
+        /  /      `.  ` \\ \\                 
+       |  /         `.  \\  |                
+       |  |           `.   |  
+       |  |.---.   .---.\\  |        
+       | ||><@> ) ( <@><|` |   
+       |  |     / \\     || |                
+       |  |    ((_))    |  |     
+       | `|`  /     \\  '|  |   
+       |  |   _.---._   |  |  
+       /  \\    `---'    /  |                
+      /    `.    "    .'   \\                
+     / / | | `-.___.-' ||   \\               
+    /     '|           |  \\  \\              
+   /'  /   |           |\\   ` \\             
+  /   .  /-'           `--.__ \\\\            
+ / .-'| ||               |   `-.\\           
+/.'  / / |               |      `.
+EOL
+my $corporate_satan_pic = << "EOL";
+   |     /\\  /\\                                                           
+(  |  ) ( (__) )              
+ \\_|_/   \\@..@/                 
+   |    __\\\\//__                                           
+   |\\  /   \\/   \\                                                         
+   |\\\\/ (   |  ) |                     
+   | \\_/|   | | |                                                         
+   |    |   | |o|         
+   |    |==-==| |             
+   |    (     )_|          
+   |    |  |  |()        
+   |    |  |  |                                                           
+   |    |  |  |                                        
+   |   _|  |  |_                                                          
+   |  (___/ \\___)                                    
+EOL
+my $impatient_waiter_pic = << "EOL";
+                   [_________]
+              ,,,,,      _|//
+             , , ;;      ( /
+            <    D        =o
+            |.   /       /\\|
+        _____|><|_______/o /
+       / '==| :: |=='  <  /
+      /  \\  <    >  /____/
+     /  _/\\ | :: | /
+      \\  ||_|____|/
+       |o| |  x  |
+       ( \\ / _'_ \
+       ////   |   \
+         |    |    |
+         |    |    |
+         |    |    |
+         \\ _  |  _ /
+          \\   |   /
+           \\  |  /
+            |_|_|
+           /o | o\
+          /o _|_ o\
+         (__/   \\__)
+EOL
+my $icp_clown_pic = << "EOL";
+     ,            _..._            ,
+    {'.         .'     '.         .'}
+   { ~ '.      _|=    __|_      .'  ~}
+  { ~  ~ '-._ (___________) _.-'~  ~  }
+ {~  ~  ~   ~.'           '. ~    ~    }
+{  ~   ~  ~ /   /\\     /\\   \\   ~    ~  }
+{   ~   ~  /    __     __    \\ ~   ~    }
+ {   ~  /\\/  -<( o)   ( o)>-  \\/\\ ~   ~}
+  { ~   ;(      \\/ .-. \\/      );   ~ }
+   { ~ ~\\_  ()  ^ (   ) ^  ()  _/ ~  }
+    '-._~ \\   (`-._'-'_.-')   / ~_.-'
+        '--\\   `'._'"'_.'`   /--'
+            \\     \\`-'/     /
+             `\\    '-'    /'
+               `\\       /'
+                 '-...-'
+EOL
+my $skeleton_pic = << "EOL";
+     _.--"""""--._
+   .'             '.
+  /                 \
+ ;                   ;
+ |                   |
+ |                   |
+ ;                   ;
+  \\ (`'--,    ,--'`) /
+   \\ \\  _ )  ( _  / /
+    ) )(')/  \\(')( (
+   (_ `""` /\\ `""` _)
+    \\`"-, /  \\ ,-"`/
+     `\\ / `""` \\ /`
+      |/\\/\\/\\/\\/\\|
+      |\\        /|
+      ; |/\\/\\/\\| ;
+       \\`-`--`-`/
+        \\      /
+         ',__,'
+          q__p
+          q__p
+          q__p
+          q__p
+EOL
+my $jbizzle_pic = << "EOL";
+                     .
+           /^\\     .
+      /\\   "V"
+     /__\\   I      O  o
+    //..\\\\  I     .
+    \\].`[/  I
+    /l\\/j\\  (]    .  O
+   /. ~~ ,\\/I          .
+   \\\\L__j^\\/I       o
+    \\/--v}  I     o   .
+    |    |  I   _________
+    |    |  I c(`       ')o
+    |    l  I   \\.     ,/   
+  _/j  L l\\_!  _//^---^\\\\_
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EOL
+my $lead_skeleton_pic = << "EOL";
+                                           .""--.._
+                                           []      `'--.._
+                                           ||__           `'-,
+                                         `)||_ ```'--..       \
+                     _                    /|//}        ``--._  |
+                  .'` `'.                /////}              `\\/
+                 /  .""".\\              //{///    
+                /  /_  _`\\\\            // `||
+                | |(_)(_)||          _//   ||
+                | |  /\\  )|        _///\\   ||
+                | |L====J |       / |/ |   ||
+               /  /'-..-' /    .'`  \\  |   ||
+              /   |  :: | |_.-`      |  \\  ||
+             /|   `\\-::.| |          \\   | ||
+           /` `|   /    | |          |   / ||
+         |`    \\   |    / /          \\  |  ||
+        |       `\\_|    |/      ,.__. \\ |  ||
+        /                     /`    `\\ ||  ||
+       |           .         /        \\||  ||
+       |                     |         |/  ||
+       /         /           |         (   ||
+      /          .           /          )  ||
+     |            \\          |             ||
+    /             |          /             ||
+   |\\            /          |              ||
+   \\ `-._       |           /              ||
+    \\ ,//`\\    /`           |              ||
+     ///\\  \\  |             \\              ||
+    |||| ) |__/             |              ||
+    |||| `.(                |              ||
+    `\\\\` /`                 /              ||
+       /`                   /              ||
+      /                     |              ||
+     |                      \\              ||
+    /                        |             ||
+  /`                          \\            ||
+/`                            |            ||
+`-.___,-.      .-.        ___,'            ||
+         `---'`   `'----'`
+EOL
+my $boner_pic = << "EOL";
+  _     .-.
+ ( `. .'   )
+  `. `   /'
+    |   |
+    |   |
+   _|69 |
+  (__,  |
+    L_,)|
+      | |
+    ,_/ |
+    |   |
+    |   |
+   /     '.
+  (   ,    )
+   '-' '--'
+EOL
+# A robot named Y2DT , Yum Yum Tasty Donuts, he provides you with baked goods
 
 my %playerChar = (
     NAME => '"I\'m so bad at these names babe"',
     CLASS => '"Black, you said race"',
     PORTRAIT => 'o',
-    CURRENT_HP => '100',
-    MAX_HP => '100',
+    CURRENT_HP => '130',
+    MAX_HP => '130',
     LVL => '1',
     DMG_MIN => '10',
     DMG_MAX => '20',
     CRIT_CHANCE => '15',
     CURRENT_XP => '0',
     NEXT_LVL_XP => '100',
+    DEFENSE => '0',
     TYPICAL => 'N',
     EQUIPPED_LEFT => '',
     EQUIPPED_RIGHT => '',
@@ -77,18 +395,17 @@ my %charClass = (
     Wizard    => { PORTRAIT => 'ᐂ', DESC => 'Mutha fuckin wizards never die.'}
     );
 
-my @monsterName = ("Skeleton","Impatient Waiter","Crow","IRS Guy","ICP Clown","Juggalo","Roaming bovine");
+my @monsterName = ("Boner","Corporate Satan","Skeleton","Impatient Waiter","Crows","IRS Guy","ICP Clown","Juggalette","Roaming bovine","Struttin guy","Grim Reaper Statue","Dirty French Guy","Birds shitting on a car");
 
 my %monsterChar = (
         NAME => '',
-        HP => '',
+        MAX_HP => '',
+        CURRENT_HP => '',
         DMG_MIN => '',
         DMG_MAX => '',
         DEATH_XP => '',
         DEATH_GOLD => '',
     );
-
-
 
 # Autovivification
 my %items = (
@@ -134,18 +451,30 @@ my %items = (
             DEF => '14',
             TYPE => 'ARMOR',
         },
+        OCARINA => {
+            NAME => "THE Ocarina",
+            DESC => "You see a blue transverse ocarina.",
+            PRICE => "666",
+            TYPE => "MISC",
+        },
+        MAP => {
+            NAME => "a map",
+            DESC => "Allows you to orient yourself in the world.",
+            PRICE => "200",
+            TYPE => "MISC",
+        }
     );
 
 my %quests = (
-    ESCAPE => {
-        NAME => "Escape from wherever the hell you got warped into.",
-        STATE_A => '2',
-        STATE_B => '2',
-        LOG_ENTRY_A1 => "Some shit",
-        LOG_ENTRY_B1 => "Some other shit",
-        LOG_ENTRY_A2 => "More shit",
-        LOG_ENTRY_B2 => "The most shit",
-        },
+   # ESCAPE => {
+  #     NAME => "Escape from wherever the hell you got warped into.",
+   #     STATE_A => '2',
+   #     STATE_B => '2',
+   #     LOG_ENTRY_A1 => "Some shit",
+   #     LOG_ENTRY_B1 => "Some other shit",
+   #     LOG_ENTRY_A2 => "More shit",
+   #     LOG_ENTRY_B2 => "The most shit",
+   #     },
     MOVELOGS => { 
         NAME => "Find a way past the fallen trees.",
         STATE_A => '0', 
@@ -157,10 +486,11 @@ my %quests = (
         },
     );
 
-my @fightIntro = ("I EAT PIECES OF SHIT LIKE YOU FOR BREAKFAST!","C'MERE YOU!","WHY I OUGHTTA","I'M GONNA PASTEURIZE YOU!","I'M GONNA MURDA YA!","I'MA WARIO I'MA GONNA WEEN","I'M GUNNA MOYDA YA!","I'M GONNA FOLD YOUR CLOTHES WITH YOU IN 'EM","YOU WANNA SEE TOUGH? I'LL SHOW YOU TOUGH","I NEVER LOSE!","LEMME AT 'EM");
-my @fightWords = ("POW!","ZAP!","BLAMMO!","THUD!!","CRACK!", "BIFF!", "WHOOP","OVER 9000!!!", "BOOP", "BOP", "BLAM SLAM", "TOASTIEEE", "SHAZZAM!", "BANG!", "SPLAT!", "SHWOMP!", "BOING!", "GLAVEN!", "JINKIES!", "YOWZA!", "UHH! I FEEL GOOD!","BONK!","CLONK!","HHHWHACK!","HHHWWAAMM!","THUNK!!","KRUNCH!","MEOW!","SPREZCEHN ZE POW!","HUUU!","KABLAM!");
-my @fightEnd = ("BURY ME WITH MY...MONEY","X_X","X_x","I'M GONNA TELL MY MOM!","HEY, YOU'RE MEAN","RUDE","*trumpet* WAAA WAAA WAAAAAAA","FUCK!", "SHITCOCKS!");
-push@{$playerChar{INVENTORY}},'Sword';
+my @fightIntro = ("HALT!","I EAT PIECES OF SHIT LIKE YOU FOR BREAKFAST!","GARBAGE DAY!","C'MERE YOU!","WHY I OUGHTTA","I'M GONNA PASTEURIZE YOU!","I'M GONNA MURDA YA!","I'MA WARIO I'MA GONNA WEEN","I'M GUNNA MOYDA YA!","I'M GONNA FOLD YOUR CLOTHES WITH YOU IN 'EM","YOU WANNA SEE TOUGH? I'LL SHOW YOU TOUGH","I NEVER LOSE!","LEMME AT 'EM","I'M GONNA PARK MY CAR ON TOP OF YOU!","GET READY!","YOU HAVE HUGE GUTS!","RIP AND TEAR!","I'LL TURN YOU INTO A MEAT POPSICLE!","FRESH MEAT!","TO KILL OR NOT TO KILL?","BRING THE NOISE!","BRING THE PAIN!","FOR ZUUL!","YOU'RE FUCKING DEAD!","YOU'RE FUCKING WORMFOOD!");
+my @fightWords = ("POW!","ZAP!","BLAMMO!","THUD!!","CRACK!", "BIFF!", "WHOOP","OVER 9000!!!", "BOOP", "BOP", "BLAM SLAM", "TOASTIEEE", "SHAZZAM!", "BANG!", "SPLAT!", "SHWOMP!", "BOING!", "GLAVEN!", "JINKIES!", "YOWZA!", "UHH! I FEEL GOOD!","BONK!","CLONK!","HHHWHACK!","HHHWWAAMM!","THUNK!!","KRUNCH!","MEOW!","SPREZCEHN ZE POW!","HUUU!","KABLAM!","BONK!","KLUNK!","THWACK!","OOOOFF!","ZAM!","ZOWIE!","SWOOSH!","PAM!","CRRAAACK!");
+my @fightEnd = ("BURY ME WITH MY...MONEY","X_X","X_x","I'M GONNA TELL MY MOM!","HEY","RUDE :P <3 :)","*trumpet* WAAA WAAA WAAAAAAA","FUCK!", "SHITCOCKS!","DO IT!","SOMETIMES I JUST KILL MYSELF!","I'M BATMAN!","HOW DID YOU DO SUCH AMAZING STUNTS WITH SUCH LITTLE FEET?","NICE SHOT!","GOODBYE MR. $playerChar{NAME}!","HAPPY LANDINGS ASSHOLE!","THAT'LL DO IT!","ENOUGHH! ENOUGHHHH!","FOR ENGLAND?","I AM INVINCIBLE!","I SHOULD HAVE HAD BETTER LAST WORDS!","I REGRET NOTHING!");
+
+push@{$playerChar{INVENTORY}},'Ocarina';
 
 
 
@@ -171,23 +501,20 @@ sub ENTER_PROMPT {
 }
 
 sub GAME_INTRO {
-    #####################
-    # GAME START SCREEN #
-    #####################
     system("clear");
-
     print "\n\n\n";
     printf ("%65s", "##############################################\n");
     printf ("%70s",  colored("Quest Through The Deathly Dungeon of Doom!", "bold"));
     print "\n";
     printf ("%65s", "##############################################\n");
-    printf ("%58s", "Version: Gigantic fucking alpha\n");
+    printf ("%65s", "Version: Best goddamn beta anyones ever played\n");
     ENTER_PROMPT();
     system("clear");
     say "Welcome!\n";
     sleep 1;
 
-    say "You're in a small room with one window. You notice a chair sitting in\nthe corner of the room. There is a table with a computer on it in the\nmiddle of the room. Behind you is a door.";
+    my $intro = "You're in a small room with one window. You notice a computer chair sitting in\nthe corner of the room. There is a table with a computer on it in the\nmiddle of the room. Behind you is a door.";
+    say $intro;
     my $chairMoved = 0;
     my $tempVar = 0;
     my $tempName;
@@ -215,6 +542,9 @@ sub GAME_INTRO {
                 say "\"Oh yeah, nice to meet you $tempName, it seems the door is stuck.\" You think about\nforcing it open.";
                 $tempVar = 1;
             }
+        }
+        elsif ($input =~ m/^REPEAT$/) {
+            say $intro;
         }
         elsif ($input =~ m/^FORCE THE DOOR/ || $input =~ m/^FORCE DOOR/) {
             if ($tempName !~ m/^RON/) {
@@ -252,32 +582,26 @@ sub GAME_INTRO {
     say ITALIC."\"If only you had some computer repair flyers...\"".RESET." you think to yourself.";
     ENTER_PROMPT();
 
-    $cui->dialog("Insert coins. 1 play = 3gp");
-    $cui->leave_curses;
-
+    say GREEN."=> ".RESET."Insert Coins because this computer takes coins. 1 play = ".YELLOW."3".RESET."gp\n";
     say "You think to yourself, \"That's strange, and proceed to check your pockets for some spare change.\"";
     say "In your pockets you find ".YELLOW.$playerChar{GOLD}.RESET."gp. How convienient!";
 
     my $coinCount = 1;
     my $stopCount = 0;
     while ($coinCount <= 3) {
-        print "=> Insert coin into cd drive? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "] ";
+        print GREEN." \$ ".RESET."Insert coin into cd drive? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "] ";
         $input = uc(<STDIN>);
         chomp($input);
         if ($input =~ m/Y{1}E*S*/) { 
-            print "You've inserted ".YELLOW.$coinCount.RESET; 
-            if ($coinCount == 1) { 
-                say " coin!"; 
-            } else { 
-                say " coins!"; 
-            }
+            say GREEN." \$ ".RESET."You've inserted ".YELLOW.$coinCount.RESET."gp!"; 
             $coinCount += 1;
             $playerChar{GOLD} -= 1;
         }
         else { 
             $stopCount += 1;
-            if ($stopCount < 3) { say "You know you want to play. I can hear ".YELLOW.$playerChar{GOLD}.RESET."gp in there."; }
-            if ($stopCount == 3) { say "Guess you want to quit, huh?"; exit; } 
+            if ($stopCount < 3) { say GREEN." \$ ".RESET."You know you want to play. I can hear ".YELLOW.$playerChar{GOLD}.RESET."gp in there."; }
+            if ($stopCount == 2) { say GREEN." \$ ".RESET."Guess you want to quit, huh?"; }
+            if ($stopCount == 3) { say GREEN." \$ ".RESET."Well rats\' off to ya then!"; }
         }
     }
 
@@ -290,6 +614,7 @@ sub GAME_INTRO {
     if ($input) {
         $playerChar{NAME} = $input;      
     }
+    system("/usr/bin/afplay Sounds/EricGreene_charCreationScreen.wav &");
     say GREEN." \$ ".RESET."Welcome to the fray, ".BOLD.$playerChar{NAME}.RESET.".\n";
     say GREEN." \$ ".RESET."Choose your race. Currently the race is cosmetic but race traits and flaws will be added later.";
     say GREEN." \$ ".RESET."#---------------------------------------------------------- ------------------------------------------#";
@@ -335,25 +660,20 @@ sub GAME_INTRO {
 }
 
 sub FINALE {
-    sleep 15;
-    my $finalQuestion = $cui->dialog(
-        -message => 'What\'ll it be?',
-        -buttons => ['yes','no'],
-        -values  => [1,0],
-        -title   => 'Question',
-        );
-    if ($finalQuestion) { 
-        $cui->leave_curses; 
+    sleep 10;
+    print "Will you marry me? ";
+    my $input = <STDIN>;
+    chomp ($input);
+    if ($input =~ m/Y/i || $input =~ m/YES/i) {
         system("clear"); 
         say "\n\n\n\nMission Accomplished";
-        system("open \"END.png\"")
-    }
-    else { 
-        $cui->leave_curses; 
+        system("open \"END.png\"");
+        exit;
+    } else { 
         system("clear"); 
-        print "\n\n\n\nNo\n"; 
+        print "\n\n\n\nReally?\n"; 
+        exit;
     }
-
 }
 
 #Location on the grid = current X[0], current Y[1], previous X[2], previous Y[3], AoAIndexCount[4]
@@ -370,25 +690,25 @@ my @MapAoA = ( [0,0,1,0,0,1,0,0,0,0], #[0] array.
 	       	   [3,0,0,0,0,0,1,1,1,0], #[3] etc
 	           [4,0,0,0,0,1,0,1,1,0], #[4] etc.
 	           [0,1,0,0,1,1,0,0,1,0], #[5] etc..
-		       [1,1,2,0,1,0,0,0,1,0], #[6] etc...
-		       [2,1,0,0,1,0,1,0,1,0], #[7]
-		       [3,1,0,0,0,1,0,1,1,0], #[8]
-		       [4,1,0,1,1,1,0,0,1,0], #[9]
-		       [0,2,0,0,1,1,0,0,1,0], #[10]
-		       [1,2,0,0,0,1,1,0,1,0], #[11]
-		       [2,2,0,0,0,0,1,1,1,0], #[12]
-		       [3,2,0,0,0,1,0,1,0,0], #[13]
-		       [4,2,0,0,0,1,0,0,0,0], #[14]
-		       [0,3,0,0,1,1,0,0,1,0], #[15]
-		       [1,3,0,0,1,1,0,0,1,0], #[16]
-		       [2,3,3,0,0,1,0,0,0,0], #[17]
-		       [3,3,0,0,1,1,0,0,1,0], #[18]
-		       [4,3,0,0,0,1,0,0,0,0], #[19]
-		       [0,4,0,0,1,0,1,0,1,0], #[20]
-		       [1,4,0,0,1,0,0,1,1,0], #[21]
-		       [2,4,0,0,1,0,1,0,1,0], #[22]
-		       [3,4,0,0,1,0,0,1,1,0], #[23]
-		       [4,4,0,0,0,1,0,0,0,0]  #[24]
+  		       [1,1,2,0,1,0,0,0,1,0], #[6] etc...
+  		       [2,1,0,0,1,0,1,0,1,0], #[7]
+  		       [3,1,0,0,0,1,0,1,1,0], #[8]
+  		       [4,1,0,1,1,1,0,0,1,0], #[9]
+  		       [0,2,0,0,1,1,0,0,1,0], #[10]
+  		       [1,2,0,0,0,1,1,0,1,0], #[11]
+  		       [2,2,0,0,0,0,1,1,1,0], #[12]
+  		       [3,2,0,0,0,1,0,1,0,0], #[13]
+  		       [4,2,0,0,0,1,0,0,0,0], #[14]
+  		       [0,3,0,0,1,1,0,0,1,0], #[15]
+  		       [1,3,0,0,1,1,0,0,1,0], #[16]
+  		       [2,3,3,0,0,1,0,0,0,0], #[17]
+  		       [3,3,0,0,1,1,0,0,1,0], #[18]
+  		       [4,3,0,0,0,1,0,0,0,0], #[19]
+  		       [0,4,0,0,1,0,1,0,1,0], #[20]
+  		       [1,4,0,0,1,0,0,1,1,0], #[21]
+  		       [2,4,0,0,1,0,1,0,1,0], #[22]
+  		       [3,4,0,0,1,0,0,1,1,0], #[23]
+  		       [4,4,0,0,0,1,0,0,0,0]  #[24]
     );
 
 my %cheats = (
@@ -579,11 +899,11 @@ sub TRAVEL_DIR {
             say RED."=> ".RESET."Despite how hard you want to walk through walls, you cannot. Try $val instead.";
         } 
         elsif (rand(121) >= 20) { 
-            say "You knock your noggin off the wall and hurt yourself! ".RED."You lose 5hp".RESET.".";
-            $playerChar{CURRENT_HP} -= 5;
+            say "You knock your noggin off the wall and hurt yourself! ".RED."You lose 10hp".RESET.".";
+            $playerChar{CURRENT_HP} -= 10;
         } else {
-            say "Your body attempts to merge with the wall in front of you.".RED."You lose 5hp".RESET.".";
-            $playerChar{CURRENT_HP} -= 5; 
+            say "Your body attempts to merge with the wall in front of you.".RED."You lose 15hp".RESET.".";
+            $playerChar{CURRENT_HP} -= 15; 
         }
         return;
     }
@@ -593,6 +913,8 @@ sub TRAVEL_DIR {
 
 
 sub LOCATION_SETTINGS {
+    # Unset the people you can talk to
+    @talkToPerson = ();
     if ($MapLoc[0] == 0 && $MapLoc[1] == 0 && $initialHelpScreen == 1) {
         $initialHelpScreen = 0;
         ACTION("HELP");
@@ -609,8 +931,9 @@ sub LOCATION_SETTINGS {
     # Once you get help from the shopkeeper, the pathing can change to allow access to the rest of the map at 3,2
     if ($MapLoc[0] == 3 && $MapLoc[1] == 2) {
         if ($quests{MOVELOGS}{STATE_A} == 0 || $quests{MOVELOGS}{STATE_B} == 1) {
-            say YELLOW."=> ".RESET."You see some ".BOLD."burly guys".RESET." standing around";
+            say YELLOW."=> ".RESET."You see some ".BOLD."burly guys".RESET." standing around.";
             push @talkToPerson,'BURLY GUYS';
+            $playerChar{CURRENT_HP} = $playerChar{MAX_HP};
         }
     }
    
@@ -651,12 +974,16 @@ sub LOCATION_SETTINGS {
         }
     }
 
+    if ($MapLoc[0] == 1 && $MapLoc[1] == 1) {
+      say "You see a chest on the ground.\n";
+      $chest = 1;
+    }
+
     # If the main boss has died, the room will start collapsing. The falling rocks chase you the rest of the way out of the dungeon.
     if ($MapLoc[0] == 4 && $MapLoc[1] == 2 && $main_boss_dead == 0) {
-        say YELLOW."\n=> ".RESET."You fight the ".RED.BOLD."Main Boss".RESET."!";
+      say YELLOW."=> ".RESET.BOLD."You enter the lair of the final boss. Prepare your buttholes for total annihilation.";
 	    ENTER_PROMPT();
-    	splice @{$MapAoA[$MapLoc[4]]},3,1,0;
-    	$main_boss_dead = 1;
+      COMBAT("BOSS");
     }
     if ($main_boss_dead == 1 && @{$MapAoA[$MapLoc[4]]}[2] == 1) {
         splice @{$MapAoA[$MapLoc[4]]},2,1,2;
@@ -736,23 +1063,71 @@ sub QUEST_SYSTEM {
 }
 
 sub COMBAT {
-    $monsterChar{NAME} = $monsterName[rand @monsterName];
-    $monsterChar{HP} = int(rand(200) + 75);
-    $monsterChar{DMG_MIN} = int(rand(2));
-    $monsterChar{DMG_MAX} = int(rand(30));
-    $monsterChar{DEATH_XP} = int(rand(76)+10);
-    $monsterChar{DEATH_GOLD} = int(rand(51)+1);
+    my $final_boss = shift;
+    if (not defined $final_boss) {
+        $final_boss = 0;
+        $monsterChar{NAME} = $monsterName[rand @monsterName];
+        $monsterChar{MAX_HP} = int(rand(101) + 45) + int(10 + $playerChar{LVL} * 1.5);
+        $monsterChar{CURRENT_HP} = $monsterChar{MAX_HP};
+        $monsterChar{DMG_MIN} = int(rand(5)+1);
+        $monsterChar{DMG_MAX} = int(rand(15) + 2) + int($playerChar{LVL} * 1.5);
+        $monsterChar{DEATH_XP} = int(rand(66) + 25);
+        $monsterChar{DEATH_GOLD} = int(rand(76) + 25);
+    } else {
+        $final_boss = 1;
+        $monsterChar{NAME} = "Lead Skeleton";
+        $monsterChar{MAX_HP} = int(rand(251) + 45) + int(10 + $playerChar{LVL} * 1.5);
+        $monsterChar{CURRENT_HP} = $monsterChar{MAX_HP};
+        $monsterChar{DMG_MIN} = int(rand(9)+1);
+        $monsterChar{DMG_MAX} = int(rand(22) + 2) + int($playerChar{LVL} * 1.5);
+        $monsterChar{DEATH_XP} = int(rand(400)+200);
+        $monsterChar{DEATH_GOLD} = 666;
+    }
 
-    say "\nPlease use ".BOLD RED."Attack".RESET.", ".BOLD BLUE."Block".RESET.", or ".BOLD GREEN."Magic".RESET." along with the arrow keys during combat\n".RESET;
+
+    # Eventually turn this into how we assign a portrait to a monster permanently. This will be outside of combat and at game generation all initial monsters are created. Upon demand, monsters should also be able to be created. This would give us monster spawners. One day the monsters will be able to repopulate rooms after a set time period.
+    switch ($monsterChar{NAME}) {
+        case m/^Skeleton$/i { $monsterChar{PORTRAIT} = $skeleton_pic; }
+        case m/^IRS Guy$/i { $monsterChar{PORTRAIT} = $irs_guy_pic; }
+        case m/^Struttin Guy$/i { $monsterChar{PORTRAIT} = $struttin_guy_pic; }
+        case m/^Birds shitting on a car$/i { $monsterChar{PORTRAIT} = $birds_shitting_on_a_car_pic; }
+        case m/^Dirty French Guy$/i { $monsterChar{PORTRAIT} = $dirty_french_guy_pic; }
+        case m/^Crows$/i { $monsterChar{PORTRAIT} = $crows_pic; }
+        case m/^Roaming Bovine$/i { $monsterChar{PORTRAIT} = $roaming_bovine_pic; }
+        case m/^Corporate Satan$/i { $monsterChar{PORTRAIT} = $corporate_satan_pic; }
+        case m/^Impatient Waiter$/i { $monsterChar{PORTRAIT} = $impatient_waiter_pic; }
+        case m/^ICP Clown$/i { $monsterChar{PORTRAIT} = $icp_clown_pic; }
+        case m/^Grim Reaper Statue/i { $monsterChar{PORTRAIT} = $grim_reaper_statue_pic; }
+        case m/^Juggalette$/i { $monsterChar{PORTRAIT} = $juggalette_pic; }
+        case m/^Lead Skeleton$/i { $monsterChar{PORTRAIT} = $lead_skeleton_pic; }
+        case m/^Boner$/i { $monsterChar{PORTRAIT} = $boner_pic; }
+        else { $monsterChar{PORTRAIT} = BOLD.RED."=> ".RESET."Picture Unavailable."; }
+    }
+
+    say "\nUse ".BOLD RED."Attack".RESET.", ".BOLD BLUE."Block".RESET.", or ".BOLD GREEN."Magic".RESET." along with the arrow keys for\ndirectional damage in combat\n".RESET.RED."A".RESET." for attacking, ".BLUE."B".RESET." for blocking, ".GREEN."M".RESET." for magic spells.";
+
+    say $monsterChar{PORTRAIT};
     say BRIGHT_RED."=> ".RESET."A $monsterChar{NAME} attacks you!";
     say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} yells ".ITALIC."\"".$fightIntro[rand @fightIntro]."\"".RESET;
-    
-    my $char = undef;
-    my $rng = 0;
-    my $dmg = 0;
 
-    while ($monsterChar{HP} >= 0) {
-        say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} has $monsterChar{HP}hp";
+    my $itsABonus = 0;
+
+    while ($monsterChar{CURRENT_HP} > 0) {
+        my $char = undef;
+        my $rng = 0;
+        my $dmg = 0;
+        my $monster_dmg = 0;
+        my $validKey = 0;
+        my $block = 0;
+        my $MONSTER_HP_STATUS = int(($monsterChar{CURRENT_HP} / $monsterChar{MAX_HP}) * 100);
+
+        print BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} has ";
+        switch ($MONSTER_HP_STATUS) {
+            case { $MONSTER_HP_STATUS >= 75} { say GREEN.$monsterChar{CURRENT_HP}.RESET."/".GREEN.$monsterChar{MAX_HP}.RESET."hp"; }
+            case { $MONSTER_HP_STATUS >= 40} { say YELLOW.$monsterChar{CURRENT_HP}.RESET."/".GREEN.$monsterChar{MAX_HP}.RESET."hp"; }
+            else { say RED.$monsterChar{CURRENT_HP}.RESET."/".GREEN.$monsterChar{MAX_HP}.RESET."hp"; }
+        }
+
         print CYAN."\n=> ".RESET."Action: ";
 
         # Term::ReadKey doc http://search.cpan.org/dist/TermReadKey/ReadKey.pm
@@ -761,34 +1136,51 @@ sub COMBAT {
 
         # Try again if there is no character inputted
         if (not defined $char) {
-            say "No character defined by that keypress\n";
-            last;
+            say RED."=> ".RESET."No character defined by that keypress";
         }
 
         #say ord($char);
 
         # A or a for basic attacking
         if (ord($char) == 97 || ord($char) == 65) {
-            $rng = int(rand(3) + 1);
+            $rng = int(rand(6) + 1);
+            print RED;
             switch ($rng) {
                 case 1 { print "STAB"; }
                 case 2 { print "SWING"; }
                 case 3 { print "SLASH"; }
+                case 4 { print "CUT"; }
+                case 5 { print "BUTCHER"; }
+                case 6 { print "SLICE"; }
                 else { print "FILET"; }
             }
+            print RESET;
+            $validKey = 1;
+            $dmg = int(rand($playerChar{DMG_MAX} - $playerChar{DMG_MIN})) + $playerChar{DMG_MIN};
+            $monster_dmg = int(rand($monsterChar{DMG_MAX} - $monsterChar{DMG_MIN})) + $monsterChar{DMG_MIN};
         }
         # B or b for blocking
         elsif (ord($char) == 98 || ord($char) == 66) {
-            $rng = int(rand(3)+1);
+            $rng = int(rand(5)+1);
+            print BLUE;
             switch ($rng) {
                 case 1 { print "GUARD"; }
                 case 2 { print "BLOCK"; }
                 case 3 { print "DEFEND"; }
+                case 4 { print "RESIST"; }
+                case 5 { print "HARDEN"; }
+                else { print "BIDE"; }
             }
+            print RESET;
+            $validKey = 1;
+            $block = 1;
+            $dmg = 0;
+            $monster_dmg = int((rand($monsterChar{DMG_MAX} - $monsterChar{DMG_MIN}) + $monsterChar{DMG_MIN})/2);
         }
         # M or m for magic
         elsif (ord($char) == 109 || ord($char) == 77) {
             $rng = int(rand(4) + 1);
+            print GREEN;
             switch ($rng) {
                 case 1 { print "POOF"; }
                 case 2 { print "POW"; }
@@ -796,46 +1188,81 @@ sub COMBAT {
                 case 4 { print "ABRA KADABRA"; }
                 else { print "SHAZZZAAM"; }
             }
+            print RESET;
+            $validKey = 1;
+            $dmg = int(rand($playerChar{DMG_MAX} - $playerChar{DMG_MIN})) + $playerChar{DMG_MIN};
+            $monster_dmg = int(rand($monsterChar{DMG_MAX} - $monsterChar{DMG_MIN})) + $monsterChar{DMG_MIN};
+        } else {
+          $validKey = 0;
+          say BOLD RED."=> ".RESET.BOLD."You've pressed a key other than A, B, or M. You've missed your turn.".RESET;
+          $dmg = 0;
         }
+
         # Get the arrow key directions
-        print CYAN." => ".RESET."Direction: ";
-        $char = ReadKey(0);
-        if (ord($char) == 27) { 
-            $char = ReadKey(0);
-            if (ord($char) == 91) { 
-                $char = ReadKey(0);
-                if (ord($char) == 67) { 
-                    say "RIGHT";
-                    $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
-                    $monsterChar{HP} -= $dmg;
-                } elsif (ord($char) == 65) { 
-                    say "UP";
-                    $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
-                    $monsterChar{HP} -= $dmg;
-                } elsif (ord($char) == 68) {
-                    say "LEFT";
-                    $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
-                    $monsterChar{HP} -= $dmg;
-                } elsif (ord($char) == 66) { 
-                    say "DOWN";
-                    $dmg = int(rand($playerChar{DMG_MAX})) + $playerChar{DMG_MIN};
-                    $monsterChar{HP} -= $dmg;
-                } else {
-                    $dmg = 0;
-                    say "I have no clue what you pressed";
-                }
+        if ($validKey == 1) {
+          print CYAN." => ".RESET."Direction: ";
+          $char = ReadKey(0);
+          if (ord($char) == 27) { 
+              $char = ReadKey(0);
+              if (ord($char) == 91) { 
+                  $char = ReadKey(0);
+                  switch (ord($char)) {
+                      case 65 { say "UP"; }
+                      case 66 { say "DOWN"; }
+                      case 67 { say "RIGHT"; }
+                      case 68 { say "LEFT"; }
+                      else { $dmg = 0; say "I have no clue what you pressed"; }
+                  }
+                  $monsterChar{CURRENT_HP} -= $dmg;
+              }
+          } 
+        }
+
+        if ($block == 1) {
+          $rng = int(rand(2));
+          switch ($rng) {
+            case 0 { say BLUE."=> ".RESET."You block, taking no damage, and the ".$monsterChar{NAME}." loses a turn."; $itsABonus = 1; $monster_dmg = BLUE."BLOCKED".RESET; 
+                     say BRIGHT_RED."=> ".RESET."Damage dealt to ".$playerChar{NAME}.": ".$monster_dmg;
             }
+            else { say BLUE."=> ".RESET."You block and take half damage from ".$monsterChar{NAME}; 
+                   say BRIGHT_RED."=> ".RESET."Damage dealt to ".$playerChar{NAME}.": ".$monster_dmg;
+                   $playerChar{CURRENT_HP} -= $monster_dmg;
+            }
+          }
         } 
+        elsif ( $itsABonus == 1 ) {
+          $itsABonus = 0;
+          say "=> *".$fightWords[rand @fightWords]."*";
+          say YELLOW."=> ".RESET."Damage dealt to ".$monsterChar{NAME}.": ".$dmg;
+        } 
+        else {
+          say "=> *".$fightWords[rand @fightWords]."*";
+          say YELLOW."=> ".RESET."Damage dealt to ".$monsterChar{NAME}.": ".$dmg;
+          $rng = int(rand(3)+1);
+          switch ($rng) {
+              case 1 { say BRIGHT_RED."=> ".RESET."The ".$monsterChar{NAME}." swings and misses."; $monster_dmg = 0; }
+              else { say BRIGHT_RED."=> ".RESET."Damage dealt to ".$playerChar{NAME}.": ".$monster_dmg; }
+          }
+          $playerChar{CURRENT_HP} -= $monster_dmg;
+        }
 
-        say BRIGHT_RED."=> ".RESET."*".$fightWords[rand @fightWords]."*";
-        say YELLOW."=> ".RESET."You did $dmg damage to $monsterChar{NAME}";
-
+        print YELLOW."=> ".RESET."You have ";
+        my $PLAYER_HP_STATUS = int(($playerChar{CURRENT_HP} / $playerChar{MAX_HP}) * 100);
+        switch ($PLAYER_HP_STATUS) {
+            case { $PLAYER_HP_STATUS >= 75} { say GREEN.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET."hp"; }
+            case { $PLAYER_HP_STATUS >= 40} { say YELLOW.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET."hp"; }
+            else { say RED.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET."hp"; }
+        }
 
         ReadMode('normal');
         STATUS();
     }
     # If monster is dead, we let the STATUS function know so that we can collect loot and XP and stuff.
-    STATUS(1);
+    if ($final_boss == 1) {
+        splice @{$MapAoA[$MapLoc[4]]},3,1,0;
+        $main_boss_dead = 1;
+    }
+    STATUS(1); 
 }
 
 
@@ -848,7 +1275,7 @@ sub STATUS {
    my $monster_activity = shift;
    if (not defined $monster_activity) {
         $monster_activity = 0;
-   }
+   } else { $monster_activity = 1; }
 
     # Check if player is dead
     if ($playerChar{CURRENT_HP} <= 0) {
@@ -873,14 +1300,16 @@ sub STATUS {
         exit;
     }
 
-    if ($monster_activity == 1 && $monsterChar{HP} <= 0) {
+    if ($monster_activity == 1 && $monsterChar{CURRENT_HP} <= 0) {
+        $monster_activity = 0;
         say BRIGHT_RED."=> ".RESET."The $monsterChar{NAME} utters a final remark, ".ITALIC."\"".$fightEnd[rand @fightEnd]."\"".RESET;
         print "\n";
         say YELLOW."=> ".RESET."You loot ".YELLOW.$monsterChar{DEATH_GOLD}.RESET."gp from the ".$monsterChar{NAME}."'s corpse.";
         $playerChar{GOLD} += $monsterChar{DEATH_GOLD};
         say YELLOW."=> ".RESET."You gain ".GREEN.$monsterChar{DEATH_XP}.RESET."xp.";
         $playerChar{CURRENT_XP} += $monsterChar{DEATH_XP};
-        print "\n";
+        say "\n".YELLOW."=> ".RESET."The feel calm inside this room";
+        splice @{$MapAoA[$MapLoc[4]]},8,1,0;
     }
 
     # Check if player can level up. If so, perform level up things and stuff.
@@ -897,7 +1326,7 @@ sub STATUS {
         $playerChar{CURRENT_HP} = $playerChar{MAX_HP};
         say GREEN."=> ".RESET.BOLD."You've gained a level!".RESET;
         say GREEN."=> ".RESET."You've gained $hp_increase hp.";
-        say GREEN."=> ".RESET."You now do an extra $dmg_min_increase\-$dmg_max_increase damage on averge.";
+        say GREEN."=> ".RESET."You now do $playerChar{DMG_MIN} \- $playerChar{DMG_MAX} damage total while unequiped.";
     }
 }
 
@@ -932,8 +1361,7 @@ sub POSTENTERROOMCHECK {
 }
 
 sub PRELEAVEROOMCHECK {
-    pop @talkToPerson;
-	say YELLOW."=> ".RESET."You attempt to leave room: ".$MapLoc[2].",".$MapLoc[3];
+	say YELLOW."=> ".RESET."You attempt to leave room: ".$MapLoc[0].",".$MapLoc[1];
 
     # Random monster check
     if (@{$MapAoA[$MapLoc[4]]}[8] == 1 && rand(101) > 33) {
@@ -969,14 +1397,14 @@ sub ACTION {
             print ", ".BOLD."CLEAR".RESET;
             print ", ".BOLD."TALK".RESET." [".BOLD."TO".RESET."] <PERSON>";
             print ", ".BOLD."INV".RESET."[".BOLD."ENTORY".RESET."] ";
-            say "and ".BOLD."C".RESET."[".BOLD."HARACTER".RESET."]"; 
+            say "and ".BOLD."C".RESET."[".BOLD."HARACTER".RESET."] ".GREEN."#".RESET; 
             say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."TIPS".RESET.GREEN." #----------------------------------------------------------------------------------# ".RESET;
-            say GREEN."# ".RESET."If you ".BOLD."LOOK".RESET.", you can travel in one of the returned directions.";
+            say GREEN."# ".RESET."If you ".BOLD."LOOK".RESET.", you can travel in one of the returned directions.                               ".GREEN."#".RESET;
             say GREEN."# ".RESET."Typing ".BOLD."AUTOLOOK".RESET." will enable/disable automatically checking directions when you enter a room. ".GREEN."#".RESET;
             if ($haveMap == 1) {
                 say GREEN."# ".RESET."Typing ".BOLD."AUTOMAP".RESET." will enable/disable automatically viewing the map when you enter a room.      ".GREEN."#".RESET;
             }
-            say GREEN."# ".RESET."Typing ".BOLD."HELP".RESET." or ".BOLD."?".RESET." will show this menu again.";
+            say GREEN."# ".RESET."Typing ".BOLD."HELP".RESET." or ".BOLD."?".RESET." will show this menu again.                                                  ".GREEN."#".RESET;
             say GREEN."#----------------------------------------------------------------------------------------------#".RESET;
         }
         elsif ($input =~ m/^AUTOLOOK$/) {
@@ -1046,13 +1474,11 @@ sub ACTION {
             printf("%-28s %3s %-35s", BOLD."Name".RESET, " : ", $playerChar{NAME}); print "\n";
             printf("%-28s %3s %-35s", BOLD."Class".RESET, " : ", $playerChar{CLASS}); print "\n";
             printf("%-28s %3s %-35s", BOLD."Level".RESET, " : ", $playerChar{LVL}); print "\n";
-            my $HP_STATUS = ($playerChar{CURRENT_HP} / $playerChar{MAX_HP}) * 100;
-            if ($HP_STATUS >= 75) {
-                use integer;
+            my $PLAYER_HP_STATUS = int(($playerChar{CURRENT_HP} / $playerChar{MAX_HP}) * 100);
+            if ($PLAYER_HP_STATUS >= 75) {
                 printf("%-28s %3s %-35s", BOLD."HP".RESET, " : ", GREEN.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
             }
-            elsif ($HP_STATUS >= 40) {
-                use integer;
+            elsif ($PLAYER_HP_STATUS >= 40) {
                 printf("%-28s %3s %-35s", BOLD."HP".RESET, " : ", YELLOW.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
             } else {
                 printf("%-28s %3s %-35s", BOLD."HP".RESET, " : ", RED.$playerChar{CURRENT_HP}.RESET."/".GREEN.$playerChar{MAX_HP}.RESET); print "\n";
@@ -1068,14 +1494,19 @@ sub ACTION {
             }
             printf("%-28s %3s %-35s", BOLD."Equipped right hand".RESET, " : ", $playerChar{EQUIPPED_RIGHT}); print "\n";
         }
-        elsif ($input =~ m/^H{1}U*R*T*/) {
-            $playerChar{CURRENT_HP} -= 20;
-        }
+        #elsif ($input =~ m/^H{1}U*R*T*/) {
+        #    $playerChar{CURRENT_HP} -= 20;
+        #}
         elsif ($input =~ m/^PEE ON/ || $input =~ m/^PISS ON/) {
             say YELLOW."=> ".RESET."Drip drip yes it's true, I'm gonna pee on you";
         }
         elsif ($input =~ m/^DIE$/ || $input =~ m/^SUICIDE$/ || $input =~ m/^KILL YOURSELF/ || $input =~ m/^KILL MYSELF/) {
             $playerChar{CURRENT_HP} -= $playerChar{CURRENT_HP};
+        }
+        elsif ($input =~ m/^OPEN CHEST$/ && $chest == 1) {
+            push@{$playerChar{INVENTORY}},'The Ring';
+            system("/usr/bin/afplay Sounds/CHEST.mp3 &");
+            $chest = 0;
         }
         elsif ($input =~ m/^J{1}O*U*R*N*A*L*$/) {
             say YELLOW."=> ".RESET."You check your journal";
@@ -1090,18 +1521,10 @@ sub ACTION {
                 }
                 if ($quests{$_}{STATE_A} == 2 && $quests{$_}{STATE_B} == 2) {
                     say "#".WHITE."=> ".RESET."Quest: ".$quests{$_}{NAME};
-                    if ($quests{$_}{LOG_ENTRY_A1} ne '') {
-                        say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1};
-                    }
-                    if ($quests{$_}{LOG_ENTRY_B1} ne '') {
-                        say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1};
-                    }
-                    if ($quests{$_}{LOG_ENTRY_A2} ne '') {
-                        say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A2};
-                    }
-                    if ($quests{$_}{LOG_ENTRY_B2} ne '') {
-                        say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B2};
-                    }
+                    if ($quests{$_}{LOG_ENTRY_A1} ne '') { say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A1}; }
+                    if ($quests{$_}{LOG_ENTRY_B1} ne '') { say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B1}; }
+                    if ($quests{$_}{LOG_ENTRY_A2} ne '') { say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_A2}; }
+                    if ($quests{$_}{LOG_ENTRY_B2} ne '') { say "#".BRIGHT_BLUE."=> ".RESET.$quests{$_}{LOG_ENTRY_B2}; }
                     say "#".WHITE."=> ".RESET."Quest: Completed";
                 }
                 print "\n";
@@ -1111,32 +1534,42 @@ sub ACTION {
         elsif ($input =~ m/^CHECK TIME$/ || $input =~ m/^TIME$/ || $input =~ m/^CLOCK$/ || $input =~ m/^CHECK CLOCK$/ || $input =~ m/^CHECK THE TIME$/ || $input =~ m/^CHECK THE CLOCK/) {
             say YELLOW."=> ".RESET."You check your watch and it says ".localtime;
         }
-        elsif ($input =~ m/^TALK$/ || $input =~ m/^TALK TO$/) {
-            say RED."=> ".RESET."Talk to who (or what)?";
+        elsif ($input =~ m/^TALK$/ || $input =~ m/^TALK TO$/ || $input =~ m/^SPEAK$/ || $input =~ m/^SPEAK TO$/) {
+            $input =~ m/^\s*(\w+)/;
+            say RED."=> ".RESET.BOLD."$1".RESET." to who (or what)?";
         }
+
+        # I could turn the talkToPerson array into a hash, that would be easier to handle.
         elsif ( @talkToPerson && ($input =~ m/^TALK $talkToPerson[0]$/ || $input =~ m/^TALK TO $talkToPerson[0]$/ || $input =~ m/^TALK TO THE $talkToPerson[0]$/)) {
-            say "You speak to $talkToPerson[0]";
+            $input =~ m/^\s*(\w+)/;
+            say YELLOW."=> ".RESET."You ".BOLD."$1".RESET." to $talkToPerson[0]";
             QUEST_SYSTEM();
+        }
+        elsif ($input =~ m/^QUIT$/ || $input =~ m/^EXIT$/) {
+            print BOLD RED."=> YOU ARE ABOUT TO QUIT. PRESS Y TO CONFIRM: ".RESET;
+            $input = uc(<STDIN>);
+            chomp($input);
+            if ($input =~ m/^Y$/) {
+                say GREEN." \$ ".RESET."Thank you for taking the time to play my game. I appreciate it very much. I\nhope you had as much fun playing as I did creating this. Please contact me at\nhttps://github.com/pgporada/ouRPerlGame/issues if you'd like to talk about\nanything at all.";
+                say "\n\n\n\n\n\n\n".BLUE."Well ".CYAN."then ".GREEN."and ".WHITE."rats\' ".YELLOW."off ".MAGENTA."to ".RED."you."."               \n\n       \n    \n         \n".BLACK."Nice job spotting this :), also, rats\' off to ya";
+                exit;
+            } else { say GREEN." \$ ".RESET."You return to the game world."; }
         }
         elsif ($input =~ m/^CLEAR$/) {
             system("clear");
         } else {
-            if(rand(101) > 75) { 
-                say RED."=> ".RESET."Maybe you should seek ".BOLD."HELP".RESET."?";
-            }
-            elsif(rand(101) > 50) {
-                say RED."=> ".RESET."You cannot perform ".BOLD.$input.RESET ." at this point in time";
-            }
-            elsif (rand(101) > 25) {
-                say RED."=> ".RESET."You can't do that here.";
-            } else {
-                say RED."=> ".RESET."Not in town";
+            my $rng = int(rand(4)+1);
+            switch ($rng) {
+                case 1 { say RED."=> ".RESET."Maybe you should seek ".BOLD."HELP".RESET."?"; }
+                case 2 { say RED."=> ".RESET."You cannot perform ".BOLD.$input.RESET ." at this point in time"; }
+                case 3 { say RED."=> ".RESET."You can't do that here."; }
+                else { say RED."=> ".RESET."Not in town"; }
             }
         }
 }
 
 sub MAIN {
-    #GAME_INTRO();
+    GAME_INTRO();
     system("clear");
     while(1) {
         UPDATE_MAP_DATA();

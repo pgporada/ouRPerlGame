@@ -164,21 +164,17 @@ print "The end!\n\n\n\n";
 ENTER_PROMPT();
 
 __DATA__
-== Lead Designer ==
-Phil Porada
-
-== Music ==
-Phil Porada
-
-== Sound ==
+== The Main Dude ==
 Phil Porada
 
 == Coding ==
 Phil Porada
 
 == Story ==
-Dan Porter
 Phil Porada
+
+== Noises & Music ==
+Eric Greene
 
 == Cats ==
 Lilly
@@ -201,7 +197,6 @@ Jenny Ingles
 
 == Special Thanks ==
 The Specials
-Myself
 Evan Cosby
 Eric Greene
 Johnny Basile
@@ -216,6 +211,7 @@ Mama Sarkody
 Chris Dogbert
 Ron Filloon
 Carl Roudabayga
+Dan Porter
 JSON McNew
 Cathryn SDS
 Steph

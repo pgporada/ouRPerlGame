@@ -19,7 +19,7 @@ Steps to use
 <br>
 2c) To install the required modules: 
 <br>
-<b>sudo cpanm Term::ANSIColor Term::ExtendedColor Term::ReadKey Curses::UI</b>
+<b>sudo cpanm Term::ANSIColor Term::ExtendedColor Term::ReadKey</b>
 <br>
 3) To run the game, first grant the execute permission:  <b>chmod +x ouRPG.pl</b>
 <br>
