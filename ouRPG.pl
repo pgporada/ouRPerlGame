@@ -1308,7 +1308,7 @@ sub STATUS {
         $playerChar{GOLD} += $monsterChar{DEATH_GOLD};
         say YELLOW."=> ".RESET."You gain ".GREEN.$monsterChar{DEATH_XP}.RESET."xp.";
         $playerChar{CURRENT_XP} += $monsterChar{DEATH_XP};
-        say "\n".YELLOW."=> ".RESET."The feel calm inside this room";
+        say "\n".YELLOW."=> ".RESET."You feel calm inside this room";
         splice @{$MapAoA[$MapLoc[4]]},8,1,0;
     }
 
@@ -1327,6 +1327,7 @@ sub STATUS {
         say GREEN."=> ".RESET.BOLD."You've gained a level!".RESET;
         say GREEN."=> ".RESET."You've gained $hp_increase hp.";
         say GREEN."=> ".RESET."You now do $playerChar{DMG_MIN} \- $playerChar{DMG_MAX} damage total while unequiped.";
+        ENTER_PROMPT();
     }
 }
 
@@ -1366,6 +1367,7 @@ sub PRELEAVEROOMCHECK {
     # Random monster check
     if (@{$MapAoA[$MapLoc[4]]}[8] == 1 && rand(101) > 33) {
         say YELLOW."=> ".RESET."As you approach the exit, a monster appears out of nowhere and lunges at you!";
+        ENTER_PROMPT();
         COMBAT();
     }
 }
