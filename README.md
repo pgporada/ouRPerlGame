@@ -26,13 +26,13 @@ The Perl game all of my friends have been helping me create by giving their idea
 <br>
 <h2>Here are some screenshots of the game in action</h2>
 <br>
-![Alt text](../../Screenshots/ourpg01.PNG?raw=true "ouRPG01")
+![Alt text](https://raw.githubusercontent.com/pgporada/ouRPerlGame/master/Screenshots/ourpg01.PNG "ouRPG01")
 <br>
-![Alt text](../../Screenshots/ourpg02.PNG?raw=true "ouRPG02")
+![Alt text](https://raw.githubusercontent.com/pgporada/ouRPerlGame/master/Screenshots/ourpg02.PNG "ouRPG02")
 <br>
-![Alt text](../../Screenshots/ourpg03.PNG?raw=true "ouRPG03")
+![Alt text](https://raw.githubusercontent.com/pgporada/ouRPerlGame/master/Screenshots/ourpg03.PNG "ouRPG03")
 <br>
-![Alt text](../../Screenshots/ourpg04.PNG?raw=true "ouRPG04")
+![Alt text](https://raw.githubusercontent.com/pgporada/ouRPerlGame/master/Screenshots/ourpg04.PNG "ouRPG04")
 <br>
 If you're curious about the Windows CMD shell I use, it's called Cmder
 <br>
