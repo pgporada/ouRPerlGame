@@ -26,13 +26,13 @@ The Perl game all of my friends have been helping me create by giving their idea
 <br>
 <h2>Here are some screenshots of the game in action</h2>
 <br>
-![Alt text](../Screenshots/ourpg01.png?raw=true "ouRPG01")
+![Alt text](../../Screenshots/ourpg01.png?raw=true "ouRPG01")
 <br>
-![Alt text](../Screenshots/ourpg02.png?raw=true "ouRPG02")
+![Alt text](../../Screenshots/ourpg02.png?raw=true "ouRPG02")
 <br>
-![Alt text](../Screenshots/ourpg03.png?raw=true "ouRPG03")
+![Alt text](../../Screenshots/ourpg03.png?raw=true "ouRPG03")
 <br>
-![Alt text](../Screenshots/ourpg04.png?raw=true "ouRPG04")
+![Alt text](../../Screenshots/ourpg04.png?raw=true "ouRPG04")
 <br>
 If you're curious about the Windows CMD shell I use, it's called Cmder
 <br>
