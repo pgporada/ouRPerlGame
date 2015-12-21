@@ -364,8 +364,8 @@ EOL
 # A robot named Y2DT , Yum Yum Tasty Donuts, he provides you with baked goods
 
 my %playerChar = (
-    NAME => '"I\'m so bad at these names babe"',
-    CLASS => '"Black, you said race"',
+    NAME => '"Guy Playington"',
+    CLASS => '"Human"',
     PORTRAIT => 'o',
     CURRENT_HP => '130',
     MAX_HP => '130',
