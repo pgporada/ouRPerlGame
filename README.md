@@ -1,41 +1,33 @@
-ouRPerlGame
-===========
+# I PROPOSED TO MY FIANCE WITH THIS GAME AND SHE SAID YES!
+
+- - - -
+# Overview: ouRPerlGame
+
 The Perl game all of my friends have been helping me create by giving their ideas.
-<br>
-<b>I PROPOSED TO MY FIANCE WITH THIS GAME AND SHE SAID YES!</b>
-<br> 
-<h2>Steps to use</h2>
-<br>
-<b>1)</b> Currently the sounds only work on osx because I'm utilizing /usr/bin/afplay in several spots.
-<br>
-<b>2)</b> You will need some modules. I like to use cpanminus
-<br>
-<b>2a)</b> Cpanminus - https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm
-<br>
-<b>2b)</b> To install Cpanminus on a Unix based system: 
-<br>
-<b>curl -L http://cpanmin.us | perl - App::cpanminus</b>
-<br>
-<b>2c)</b> To install the required modules: 
-<br>
-<b>sudo cpanm Term::ANSIColor Term::ExtendedColor Term::ReadKey Switch Term::Screen</b>
-<br>
-<b>3)</b> To run the game, grant the execute permission:  <b>chmod +x ouRPG.pl</b>
-<br>
-<b>4)</b> Then, run the game: <b>./ouRPG.pl</b>
-<br>
-<h2>Here are some screenshots of the game in action</h2>
-<br>
+
+- - - -
+# Usage
+
+1. Currently the sounds only work on osx because I'm utilizing /usr/bin/afplay in several spots.
+1. You will need some modules. I like to use cpanminus
+1. Cpanminus - https://raw.githubusercontent.com/miyagawa/cpanminus/master/cpanm
+1. To install Cpanminus on a Unix based system: `curl -L http://cpanmin.us | perl - App::cpanminus`
+1. To install the required modules: `sudo cpanm Term::ANSIColor Term::ExtendedColor Term::ReadKey Switch Term::Screen`
+1. To run the game, grant the execute permission:  `chmod +x ouRPG.pl`
+1. Finally, run the game: `./ouRPG.pl`
+
+### Screenshots of the game in action
+
 ![Alt text](https://raw.githubusercontent.com/pgporada/ouRPerlGame/master/Screenshots/ourpg01.PNG "ouRPG01")
-<br>
+
 ![Alt text](https://raw.githubusercontent.com/pgporada/ouRPerlGame/master/Screenshots/ourpg02.PNG "ouRPG02")
-<br>
+
 ![Alt text](https://raw.githubusercontent.com/pgporada/ouRPerlGame/master/Screenshots/ourpg03.PNG "ouRPG03")
-<br>
+
 ![Alt text](https://raw.githubusercontent.com/pgporada/ouRPerlGame/master/Screenshots/ourpg04.PNG "ouRPG04")
-<br>
+
 If you're curious about the Windows CMD shell I use, it's called Cmder
-<br>
-=> http://bliker.github.io/cmder/
-<br>
+
+`http://bliker.github.io/cmder/`
+
 Thanks for checking this out!
