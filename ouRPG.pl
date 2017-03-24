@@ -169,7 +169,7 @@ EOL
 my $roaming_bovine_pic = << "EOL";
     ___,,,___ _..............._
     '-/~'~\\-'` :::::'   .::    \
-      |a a |   ':::'     `::   || 
+      |a a |   ':::'     `::   ||
       |   /::.  :::.  .:::.  ::||
       (oo/::'  .::::..::::::.  /|
        `` '._   /:::'''::::' <`\\/
@@ -180,43 +180,43 @@ my $roaming_bovine_pic = << "EOL";
              ```             ``
 EOL
 my $juggalette_pic = << "EOL";
-           __.------._                      
-          .' -|  -   . `.                   
-         / '.' `-. `     \\                  
-        /  /      `.  ` \\ \\                 
-       |  /         `.  \\  |                
-       |  |           `.   |  
-       |  |.---.   .---.\\  |        
-       | ||><@> ) ( <@><|` |   
-       |  |     / \\     || |                
-       |  |    ((_))    |  |     
-       | `|`  /     \\  '|  |   
-       |  |   _.---._   |  |  
-       /  \\    `---'    /  |                
-      /    `.    "    .'   \\                
-     / / | | `-.___.-' ||   \\               
-    /     '|           |  \\  \\              
-   /'  /   |           |\\   ` \\             
-  /   .  /-'           `--.__ \\\\            
- / .-'| ||               |   `-.\\           
+           __.------._
+          .' -|  -   . `.
+         / '.' `-. `     \\
+        /  /      `.  ` \\ \\
+       |  /         `.  \\  |
+       |  |           `.   |
+       |  |.---.   .---.\\  |
+       | ||><@> ) ( <@><|` |
+       |  |     / \\     || |
+       |  |    ((_))    |  |
+       | `|`  /     \\  '|  |
+       |  |   _.---._   |  |
+       /  \\    `---'    /  |
+      /    `.    "    .'   \\
+     / / | | `-.___.-' ||   \\
+    /     '|           |  \\  \\
+   /'  /   |           |\\   ` \\
+  /   .  /-'           `--.__ \\\\
+ / .-'| ||               |   `-.\\
 /.'  / / |               |      `.
 EOL
 my $corporate_satan_pic = << "EOL";
-   |     /\\  /\\                                                           
-(  |  ) ( (__) )              
- \\_|_/   \\@..@/                 
-   |    __\\\\//__                                           
-   |\\  /   \\/   \\                                                         
-   |\\\\/ (   |  ) |                     
-   | \\_/|   | | |                                                         
-   |    |   | |o|         
-   |    |==-==| |             
-   |    (     )_|          
-   |    |  |  |()        
-   |    |  |  |                                                           
-   |    |  |  |                                        
-   |   _|  |  |_                                                          
-   |  (___/ \\___)                                    
+   |     /\\  /\\
+(  |  ) ( (__) )
+ \\_|_/   \\@..@/
+   |    __\\\\//__
+   |\\  /   \\/   \\
+   |\\\\/ (   |  ) |
+   | \\_/|   | | |
+   |    |   | |o|
+   |    |==-==| |
+   |    (     )_|
+   |    |  |  |()
+   |    |  |  |
+   |    |  |  |
+   |   _|  |  |_
+   |  (___/ \\___)
 EOL
 my $impatient_waiter_pic = << "EOL";
                    [_________]
@@ -299,7 +299,7 @@ my $jbizzle_pic = << "EOL";
     \\/--v}  I     o   .
     |    |  I   _________
     |    |  I c(`       ')o
-    |    l  I   \\.     ,/   
+    |    l  I   \\.     ,/
   _/j  L l\\_!  _//^---^\\\\_
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 EOL
@@ -310,7 +310,7 @@ my $lead_skeleton_pic = << "EOL";
                                          `)||_ ```'--..       \
                      _                    /|//}        ``--._  |
                   .'` `'.                /////}              `\\/
-                 /  .""".\\              //{///    
+                 /  .""".\\              //{///
                 /  /_  _`\\\\            // `||
                 | |(_)(_)||          _//   ||
                 | |  /\\  )|        _///\\   ||
@@ -475,10 +475,10 @@ my %quests = (
    #     LOG_ENTRY_A2 => "More shit",
    #     LOG_ENTRY_B2 => "The most shit",
    #     },
-    MOVELOGS => { 
+    MOVELOGS => {
         NAME => "Find a way past the fallen trees.",
-        STATE_A => '0', 
-        STATE_B => '0', 
+        STATE_A => '0',
+        STATE_B => '0',
         LOG_ENTRY_A1 => "The shopkeeper mentioned to go back to the burly guys.",
         LOG_ENTRY_B1 => "Some burly guys say that the path is blocked. I have to find a way around it.",
         LOG_ENTRY_A2 => "I've gotten the burly guys to clear a path and I can now head North from here.",
@@ -507,7 +507,7 @@ sub GAME_INTRO {
     printf ("%70s",  colored("Quest Through The Deathly Dungeon of Doom!", "bold"));
     print "\n";
     printf ("%65s", "##############################################\n");
-    printf ("%65s", "Version: Best goddamn beta anyones ever played\n");
+    printf ("%65s", " Version: Best damn beta anyone's ever played\n");
     ENTER_PROMPT();
     system("clear");
     say "Welcome!\n";
@@ -568,7 +568,7 @@ sub GAME_INTRO {
         }
     }
 
-    #e it in front of the monitor, and sit down.\n\nYou notice a button on the computer."; 
+    #e it in front of the monitor, and sit down.\n\nYou notice a button on the computer.";
     ENTER_PROMPT();
     sleep 1;
     say ITALIC, "*Whhhhhiiiirrrrrrr*", RESET;
@@ -592,12 +592,12 @@ sub GAME_INTRO {
         print GREEN." \$ ".RESET."Insert coin into cd drive? [", BOLD, "Y", RESET, "/", BOLD, "N", RESET, "] ";
         $input = uc(<STDIN>);
         chomp($input);
-        if ($input =~ m/Y{1}E*S*/) { 
-            say GREEN." \$ ".RESET."You've inserted ".YELLOW.$coinCount.RESET."gp!"; 
+        if ($input =~ m/Y{1}E*S*/) {
+            say GREEN." \$ ".RESET."You've inserted ".YELLOW.$coinCount.RESET."gp!";
             $coinCount += 1;
             $playerChar{GOLD} -= 1;
         }
-        else { 
+        else {
             $stopCount += 1;
             if ($stopCount < 3) { say GREEN." \$ ".RESET."You know you want to play. I can hear ".YELLOW.$playerChar{GOLD}.RESET."gp in there."; }
             if ($stopCount == 2) { say GREEN." \$ ".RESET."Guess you want to quit, huh?"; }
@@ -612,7 +612,7 @@ sub GAME_INTRO {
     $input = <STDIN>;
     chomp($input);
     if ($input) {
-        $playerChar{NAME} = $input;      
+        $playerChar{NAME} = $input;
     }
     system("/usr/bin/afplay Sounds/EricGreene_charCreationScreen.wav &");
     say GREEN." \$ ".RESET."Welcome to the fray, ".BOLD.$playerChar{NAME}.RESET.".\n";
@@ -665,13 +665,13 @@ sub FINALE {
     my $input = <STDIN>;
     chomp ($input);
     if ($input =~ m/Y/i || $input =~ m/YES/i) {
-        system("clear"); 
+        system("clear");
         say "\n\n\n\nMission Accomplished";
         system("open \"END.png\"");
         exit;
-    } else { 
-        system("clear"); 
-        print "\n\n\n\nReally?\n"; 
+    } else {
+        system("clear");
+        print "\n\n\n\nReally?\n";
         exit;
     }
 }
@@ -720,7 +720,7 @@ my %cheats = (
 sub tileTypeChecker {
 	my $ascii_Up_Down="\x{2502}";
 	my $ascii_Left_Right="\x{2500}";
-	my $ascii_Top_Left_Corner="\x{250C}";	
+	my $ascii_Top_Left_Corner="\x{250C}";
 	my $ascii_Bottom_Left_Corner="\x{2514}";
 	my $ascii_Top_Right_Corner="\x{2510}";
 	my $ascii_Bottom_Right_Corner="\x{2518}";
@@ -728,14 +728,14 @@ sub tileTypeChecker {
 }
 
 sub UPDATE_MAP_DATA {
-    # Inner/Outer exist so that I can get 0-24 for X,Y to access the correct array and check if the 
+    # Inner/Outer exist so that I can get 0-24 for X,Y to access the correct array and check if the
     # current spot has been revealed. Without these, the entire row or column would be marked as revealed
     my $innerCount = 0;
     my $outerCount = 0;
     for(my $i=0; $i <= 4; $i++) {
         for(my $j=0; $j <= 4; $j++) {
 	        # Prints your current position out from the @MapLoc array
-            if ($MapLoc[0] == $j && $MapLoc[1] == $i) { 
+            if ($MapLoc[0] == $j && $MapLoc[1] == $i) {
 		        # Changes the current positions state to "1" to reveal it
 	            # Upon traveling, the UPDATE_MAP_DATA function is called so this will update your map correctly
         		if (@{$MapAoA[$innerCount]}[2] == 0) { splice @{$MapAoA[$innerCount]},2,1,1; }
@@ -757,11 +757,11 @@ sub PRINT_MAP {
     }
     my $innerCount = 0;
     my $outerCount = 0;
-    
+
     for(my $i=0; $i <= 4; $i++) {
         for(my $j=0; $j <= 4; $j++) {
 	        # Prints your current position out from the @MapLoc array
-            if ($MapLoc[0] == $j && $MapLoc[1] == $i) { 
+            if ($MapLoc[0] == $j && $MapLoc[1] == $i) {
     	        print "[$playerChar{PORTRAIT}]";
 	        }
 	        elsif (@{$MapAoA[$innerCount]}[2] == 3 && $is_shop == 1) { print "[$shop]"; }
@@ -778,16 +778,16 @@ sub PRINT_MAP {
 sub PRINT_DIRECTIONS {
     print "\nYou can travel in the following direction(s)\n[ ";
     if (@{$MapAoA[$MapLoc[4]]}[4] == 1) {
-        print BOLD."N".RESET."orth "; 
+        print BOLD."N".RESET."orth ";
     }
     if (@{$MapAoA[$MapLoc[4]]}[5] == 1) {
-        print BOLD "S".RESET."outh "; 
+        print BOLD "S".RESET."outh ";
     }
     if (@{$MapAoA[$MapLoc[4]]}[6] == 1) {
-        print BOLD "E".RESET."ast "; 
+        print BOLD "E".RESET."ast ";
     }
     if (@{$MapAoA[$MapLoc[4]]}[7] == 1) {
-        print BOLD "W".RESET."est "; 
+        print BOLD "W".RESET."est ";
     }
     print "]\n";
 }
@@ -796,31 +796,31 @@ sub TRAVEL_DIR {
     # Final check to make sure you can't leave the current room without possibly encountering something
     my $input = shift;
 
-    if ( $input =~ m/^N{1}O*R*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[4] == 1) { 
+    if ( $input =~ m/^N{1}O*R*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[4] == 1) {
         PRELEAVEROOMCHECK();
 		$count_NS -= 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
 		splice @MapLoc,4,1,$MapLoc[4]-5;
 		# Doesn't allow you to leave the map boundaries
-		if ($MapLoc[1] <= 0 && @{$MapAoA[$MapLoc[4]]}[2] != 2) { 
+		if ($MapLoc[1] <= 0 && @{$MapAoA[$MapLoc[4]]}[2] != 2) {
 			$count_NS += 1;
 			splice @MapLoc,1,1,0; #Resets you to the Y position of the top row
 			splice @MapLoc,4,1,$MapLoc[4]+5; # Resets the MapAoA index
 		}
-		# Takes care of running into an "impasse" and resets your location to the previous location 
+		# Takes care of running into an "impasse" and resets your location to the previous location
 		elsif ($MapLoc[1] >= 0 && @{$MapAoA[$MapLoc[4]]}[2] == 2) {
 			splice @MapLoc,1,1,$MapLoc[3]; # Moves your position to the previous location
 			splice @MapLoc,4,1,$MapLoc[4]+5; # Resets the MapAoA index
 		}
-		# Allows movement if within the map boundaries		
+		# Allows movement if within the map boundaries
 		else {
 			splice @MapLoc,1,1,$count_NS; # Current
 			splice @MapLoc,3,1,$count_NS+1; # Previous
-			splice @MapLoc,2,1,$count_EW; # Previous 
+			splice @MapLoc,2,1,$count_EW; # Previous
 		}
     }
 
-    elsif ( $input =~ m/^S{1}O*U*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[5] == 1) { 
+    elsif ( $input =~ m/^S{1}O*U*T*H*$/ && @{$MapAoA[$MapLoc[4]]}[5] == 1) {
         PRELEAVEROOMCHECK();
 		$count_NS += 1;
 		# Sets a value so we can know what index we're in in the MapAoA structure
@@ -831,16 +831,16 @@ sub TRAVEL_DIR {
 			splice @MapLoc,1,1,4; # Resets you to the Y position of the bottom row
 			splice @MapLoc,4,1,$MapLoc[4]-5; # Resets the MapAoA index
 		}
-		# Takes care of running into an "impasse" and resets your location to the previous location 
-		elsif ($MapLoc[1] <= 4 && @{$MapAoA[$MapLoc[4]]}[2] == 2) { 
+		# Takes care of running into an "impasse" and resets your location to the previous location
+		elsif ($MapLoc[1] <= 4 && @{$MapAoA[$MapLoc[4]]}[2] == 2) {
 			splice @MapLoc,1,1,$MapLoc[3]; # Moves your position to the previous location
 			splice @MapLoc,4,1,$MapLoc[4]-5; # Resets the MapAoA index
 		}
-		# Allows movement if within the map boundaries		
+		# Allows movement if within the map boundaries
 		else {
 			splice @MapLoc,1,1,$count_NS; # Current
 			splice @MapLoc,3,1,$count_NS-1; # Previous
-			splice @MapLoc,2,1,$count_EW; # Previous 
+			splice @MapLoc,2,1,$count_EW; # Previous
 		}
     }
 
@@ -855,16 +855,16 @@ sub TRAVEL_DIR {
 			splice @MapLoc,0,1,4; # Rests you to the X position of the rightmost column
 			splice @MapLoc,4,1,$MapLoc[4]-1; # Resets the MapAoA index
 		}
-		# Takes care of running into an "impasse" and resets your location to the previous location 
+		# Takes care of running into an "impasse" and resets your location to the previous location
 		elsif ($MapLoc[0] <= 4 && @{$MapAoA[$MapLoc[4]]}[2] == 2) {
 			splice @MapLoc,0,1,$MapLoc[2]; # Moves your position to the previous location
 			splice @MapLoc,4,1,$MapLoc[4]-1; # Resets the MapAoA index
 		}
-		# Allows movement if within the map boundaries		
+		# Allows movement if within the map boundaries
 		else {
 			splice @MapLoc,0,1,$count_EW; # Current
-			splice @MapLoc,2,1,$count_EW-1; # Previous 
-			splice @MapLoc,3,1,$count_NS; # Previous 
+			splice @MapLoc,2,1,$count_EW-1; # Previous
+			splice @MapLoc,3,1,$count_NS; # Previous
 		}
     }
 
@@ -879,31 +879,31 @@ sub TRAVEL_DIR {
 			splice @MapLoc,0,1,0; # Resets you to the X position of the leftmost column
 			splice @MapLoc,4,1,$MapLoc[4]+1; # Resets the MapAoA index
 		}
-		# Takes care of running into an "impasse" and resets your location to the previous location 
+		# Takes care of running into an "impasse" and resets your location to the previous location
 		elsif ( $MapLoc[0] >= 0 && @{$MapAoA[$MapLoc[4]]}[2] == 2) {
 			splice @MapLoc,0,1,$MapLoc[2];
 			splice @MapLoc,4,1,$MapLoc[4]+1; # Resets the MapAoA index
 		}
-		# Allows movement if within the map boundaries	
+		# Allows movement if within the map boundaries
 		else {
 			splice @MapLoc,0,1,$count_EW; # Current
 			splice @MapLoc,2,1,$count_EW+1; # Previous
-			splice @MapLoc,3,1,$count_NS; # Previous 
+			splice @MapLoc,3,1,$count_NS; # Previous
 		}
     } else {
-        if (rand(121) >= 100) { say RED."=> ".RESET."You should really ".BOLD."LOOK".RESET." where you're going"; } 
+        if (rand(121) >= 100) { say RED."=> ".RESET."You should really ".BOLD."LOOK".RESET." where you're going"; }
         elsif (rand(121) >= 80) { say RED."=> ".RESET."Traveling into the ".BOLD.$input.RESET." wall is ill advised."; }
         elsif (rand(121) >= 60) { say RED."=> ".RESET."You've ran into the ".BOLD.$input.RESET." wall. Good job."; }
         elsif (rand(121) >= 40) {
             my $val = [@_=%cheats]->[1|rand@_];
             say RED."=> ".RESET."Despite how hard you want to walk through walls, you cannot. Try $val instead.";
-        } 
-        elsif (rand(121) >= 20) { 
+        }
+        elsif (rand(121) >= 20) {
             say "You knock your noggin off the wall and hurt yourself! ".RED."You lose 10hp".RESET.".";
             $playerChar{CURRENT_HP} -= 10;
         } else {
             say "Your body attempts to merge with the wall in front of you.".RED."You lose 15hp".RESET.".";
-            $playerChar{CURRENT_HP} -= 15; 
+            $playerChar{CURRENT_HP} -= 15;
         }
         return;
     }
@@ -918,8 +918,8 @@ sub LOCATION_SETTINGS {
     if ($MapLoc[0] == 0 && $MapLoc[1] == 0 && $initialHelpScreen == 1) {
         $initialHelpScreen = 0;
         ACTION("HELP");
-    }       
-    
+    }
+
     if ($MapLoc[0] == 0 && $MapLoc[1] == 3 && $haveMap == 0) {
         say YELLOW."\n=> ".RESET.BOLD."You found a map!".RESET;
         say YELLOW."=> ".RESET."Take time to review the ".BOLD."HELP".RESET." options. During gameplay, acquiring items will alter the possible available actions of your character.\n";
@@ -936,13 +936,13 @@ sub LOCATION_SETTINGS {
             $playerChar{CURRENT_HP} = $playerChar{MAX_HP};
         }
     }
-   
+
     if ($MapLoc[0] == 2 && $MapLoc[1] == 3) {
         say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." looks at you.";
         push @talkToPerson,'SHOPKEEPER';
     }
 
-    # Script to destroy the impasse at 0,1 
+    # Script to destroy the impasse at 0,1
     if ($MapLoc[0] == 2 && $MapLoc[1] == 0 && $impasse01_cleared == 0) {
         print "\nYou see a crack in the wall. As you investigate you realize you have a bomb to deal with this certain thing!\n";
         print "Use bomb? [".BOLD."Y".RESET."es ".BOLD."N".RESET."o ]\n".YELLOW."=> ".RESET;
@@ -1029,7 +1029,7 @@ sub QUEST_SYSTEM {
             my $input = uc<STDIN>;
             chomp ($input);
             if ($input =~ m/Y{1}E*S*/) {
-                if ($playerChar{GOLD} >= 75 ) { 
+                if ($playerChar{GOLD} >= 75 ) {
                     $quests{MOVELOGS}{STATE_B} = 1;
                     say YELLOW."=> ".RESET."The ".BOLD."shopkeeper".RESET." says \"Thanks, let me know if you need anything else.\"";
                     say YELLOW."\n=> ".RESET."Your ".BOLD."journal".RESET." has been updated!";
@@ -1184,7 +1184,7 @@ sub COMBAT {
             switch ($rng) {
                 case 1 { print "POOF"; }
                 case 2 { print "POW"; }
-                case 3 { print "SUPRISE"; } 
+                case 3 { print "SUPRISE"; }
                 case 4 { print "ABRA KADABRA"; }
                 else { print "SHAZZZAAM"; }
             }
@@ -1202,9 +1202,9 @@ sub COMBAT {
         if ($validKey == 1) {
           print CYAN." => ".RESET."Direction: ";
           $char = ReadKey(0);
-          if (ord($char) == 27) { 
+          if (ord($char) == 27) {
               $char = ReadKey(0);
-              if (ord($char) == 91) { 
+              if (ord($char) == 91) {
                   $char = ReadKey(0);
                   switch (ord($char)) {
                       case 65 { say "UP"; }
@@ -1215,26 +1215,26 @@ sub COMBAT {
                   }
                   $monsterChar{CURRENT_HP} -= $dmg;
               }
-          } 
+          }
         }
 
         if ($block == 1) {
           $rng = int(rand(2));
           switch ($rng) {
-            case 0 { say BLUE."=> ".RESET."You block, taking no damage, and the ".$monsterChar{NAME}." loses a turn."; $itsABonus = 1; $monster_dmg = BLUE."BLOCKED".RESET; 
+            case 0 { say BLUE."=> ".RESET."You block, taking no damage, and the ".$monsterChar{NAME}." loses a turn."; $itsABonus = 1; $monster_dmg = BLUE."BLOCKED".RESET;
                      say BRIGHT_RED."=> ".RESET."Damage dealt to ".$playerChar{NAME}.": ".$monster_dmg;
             }
-            else { say BLUE."=> ".RESET."You block and take half damage from ".$monsterChar{NAME}; 
+            else { say BLUE."=> ".RESET."You block and take half damage from ".$monsterChar{NAME};
                    say BRIGHT_RED."=> ".RESET."Damage dealt to ".$playerChar{NAME}.": ".$monster_dmg;
                    $playerChar{CURRENT_HP} -= $monster_dmg;
             }
           }
-        } 
+        }
         elsif ( $itsABonus == 1 ) {
           $itsABonus = 0;
           say "=> *".$fightWords[rand @fightWords]."*";
           say YELLOW."=> ".RESET."Damage dealt to ".$monsterChar{NAME}.": ".$dmg;
-        } 
+        }
         else {
           say "=> *".$fightWords[rand @fightWords]."*";
           say YELLOW."=> ".RESET."Damage dealt to ".$monsterChar{NAME}.": ".$dmg;
@@ -1262,7 +1262,7 @@ sub COMBAT {
         splice @{$MapAoA[$MapLoc[4]]},3,1,0;
         $main_boss_dead = 1;
     }
-    STATUS(1); 
+    STATUS(1);
 }
 
 
@@ -1282,9 +1282,9 @@ sub STATUS {
         my $rng = int(rand(12) + 1);
         print BRIGHT_RED."=> ".RESET."Unfortunately you have died. ";
         switch ($rng) {
-            case 1 { say "Fortunately, you ".BOLD."HAVE".RESET." to play again. ;)"; sleep 5; system("clear"); exec("$abs_path") or say STDERR "Couldn't exec $abs_path: $!"; } 
+            case 1 { say "Fortunately, you ".BOLD."HAVE".RESET." to play again. ;)"; sleep 5; system("clear"); exec("$abs_path") or say STDERR "Couldn't exec $abs_path: $!"; }
             case 2 { say "Your life is over and evil wins again."; }
-            case 3 { say "Fortunately, no one will miss you"; } 
+            case 3 { say "Fortunately, no one will miss you"; }
             case 4 { say "Maybe if I implement saving you could reload. Too bad about that though."; }
             case 5 { say "Fortunately, Soylent Green is the next big thing!"; }
             case 6 { say "Good."; }
@@ -1344,7 +1344,7 @@ sub POSTENTERROOMCHECK {
     if (@{$MapAoA[$MapLoc[4]]}[8] == 1 && rand(101) > 50) {
         say YELLOW."=> ".RESET."A wild monster appears!";
         COMBAT();
-    } 
+    }
     elsif (@{$MapAoA[$MapLoc[4]]}[8] == 1) {
         my $rng = int(rand(7)+1);
         print YELLOW."=> ".RESET;
@@ -1393,13 +1393,13 @@ sub ACTION {
             print GREEN."# ".RESET."You can ";
             print BOLD."LOOK".RESET;
             print ", ".BOLD."GET".RESET;
-            if ($haveMap == 1) { 
-                print ", ".BOLD."MAP".RESET; 
+            if ($haveMap == 1) {
+                print ", ".BOLD."MAP".RESET;
             }
             print ", ".BOLD."CLEAR".RESET;
             print ", ".BOLD."TALK".RESET." [".BOLD."TO".RESET."] <PERSON>";
             print ", ".BOLD."INV".RESET."[".BOLD."ENTORY".RESET."] ";
-            say "and ".BOLD."C".RESET."[".BOLD."HARACTER".RESET."] ".GREEN."#".RESET; 
+            say "and ".BOLD."C".RESET."[".BOLD."HARACTER".RESET."] ".GREEN."#".RESET;
             say GREEN."#----# ".RESET.RED.BOLD.UNDERLINE."TIPS".RESET.GREEN." #----------------------------------------------------------------------------------# ".RESET;
             say GREEN."# ".RESET."If you ".BOLD."LOOK".RESET.", you can travel in one of the returned directions.                               ".GREEN."#".RESET;
             say GREEN."# ".RESET."Typing ".BOLD."AUTOLOOK".RESET." will enable/disable automatically checking directions when you enter a room. ".GREEN."#".RESET;
@@ -1410,7 +1410,7 @@ sub ACTION {
             say GREEN."#----------------------------------------------------------------------------------------------#".RESET;
         }
         elsif ($input =~ m/^AUTOLOOK$/) {
-            if ($autoLook == 0) { 
+            if ($autoLook == 0) {
                 $autoLook = 1;
                 say "AUTOLOOK activated"
             } else {
@@ -1423,12 +1423,12 @@ sub ACTION {
                 $autoMap = 1;
                 say "AUTOMAP activated";
                 ACTION("MAP");
-            } else { 
+            } else {
                 $autoMap = 0;
                 say "AUTOMAP disabled";
             }
         }
-        # Take a look around 
+        # Take a look around
         elsif ($input =~ m/^L{1}O*O*K*$/) {
             PRINT_DIRECTIONS();
         }
@@ -1437,12 +1437,12 @@ sub ACTION {
             UPDATE_MAP_DATA();
             PRINT_MAP();
         }
-        # Check directions 
+        # Check directions
         elsif ($input =~ m/^S{1}O*U*T*H*$/ || $input =~ m/^N{1}O*R*T*H*$/ || $input =~ m/^E{1}A*S*T*$/ || $input =~ m/^W{1}E*S*T*$/) {
             TRAVEL_DIR($input);
         }
         # Check inventory
-        elsif ($input =~ m/^I{1}N*V*E*N*T*O*R*Y*$/) { 
+        elsif ($input =~ m/^I{1}N*V*E*N*T*O*R*Y*$/) {
             if (@{$playerChar{INVENTORY}}) {
                 say "In your inventory you currently have";
                 foreach (0..$#{$playerChar{INVENTORY}}) {
@@ -1553,7 +1553,7 @@ sub ACTION {
             chomp($input);
             if ($input =~ m/^Y$/) {
                 say GREEN." \$ ".RESET."Thank you for taking the time to play my game. I appreciate it very much. I\nhope you had as much fun playing as I did creating this. Please contact me at\nhttps://github.com/pgporada/ouRPerlGame/issues if you'd like to talk about\nanything at all.";
-                say "\n\n\n\n\n\n\n".BLUE."Well ".CYAN."then ".GREEN."and ".WHITE."rats\' ".YELLOW."off ".MAGENTA."to ".RED."you."."               \n\n       \n    \n         \n".BLACK."Nice job spotting this :), also, rats\' off to ya";
+                say "\n\n\n\n\n\n\n".BLUE."Well ".CYAN."then ".GREEN."and ".WHITE."rats\' ".YELLOW."off ".MAGENTA."to ".RED."you."."               \n\n       \n    \n         \n".BLACK."Nice job spotting this :), also, rats\' off to ya ;D!";
                 exit;
             } else { say GREEN." \$ ".RESET."You return to the game world."; }
         }
